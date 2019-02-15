@@ -2,14 +2,15 @@ package api
 
 import (
 	"../services"
-	"fmt"
 	"github.com/labstack/echo"
 	"net/http"
 )
 
 // Handler
 func GetReitAll(c echo.Context) error {
-	fmt.Println("start : GetReitAll")
-	results := services.GetReitAll(c)
+	results := services.GetReitAll()
+	if results == nil {
+		return echo.NewHTTPError(http.StatusNotFound, "data not found")
+	}
 	return c.JSON(http.StatusOK, results)
 }

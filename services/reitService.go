@@ -4,12 +4,10 @@ import (
 	"../app"
 	"../models"
 	"fmt"
-	"github.com/labstack/echo"
 	"gopkg.in/mgo.v2"
 )
 
-func GetReitAll(c echo.Context) []*models.ReitItem {
-	fmt.Println("start : GetReitAll")
+func GetReitAll() []*models.ReitItem {
 	session := *app.GetDocumentMongo()
 	defer session.Close()
 	// Optional. Switch the session to a monotonic behavior.
