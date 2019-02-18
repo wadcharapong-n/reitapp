@@ -12,3 +12,9 @@ type ReitItem struct {
 	RegistrationDate  string `bson:"registrationDate"`
 	ReitManager       string `bson:"reitManager"`
 }
+
+type Favorite struct {
+	// ID     string `bson:"_id"`
+	Ticker string `bson:"ticker"`
+	UserId string `bson:"userId"`
+}

@@ -16,5 +16,7 @@ func Init() *echo.Echo {
 
 	// Routes
 	e.GET("/reit", api.GetReitAll)
+	e.GET("/reitFavorite/:id", api.GetFavoriteReitAll)
+	e.POST("/reitFavorite", api.SaveFavoriteReit)
 	return e
 }
