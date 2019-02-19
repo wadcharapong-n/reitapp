@@ -3,11 +3,11 @@ package services
 import (
 	"../app"
 	"../models"
-	"fmt"
 	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 )
 
-func GetReitAll() []*models.ReitItem {
+func GetReitAll() ([]*models.ReitItem, error) {
 	session := *app.GetDocumentMongo()
 	defer session.Close()
 	// Optional. Switch the session to a monotonic behavior.
@@ -15,11 +15,16 @@ func GetReitAll() []*models.ReitItem {
 	document := session.DB("REIT_DEV").C("REIT")
 	results := []*models.ReitItem{}
 	err := document.Find(nil).All(&results)
-	if err != nil {
-		// TODO: Do something about the error
-		fmt.Printf("error : ", err)
-	} else {
+	return results, err
+}
 
-	}
-	return results
+func GetReitBySymbol(symbol string) (models.ReitItem, error) {
+	session := *app.GetDocumentMongo()
+	defer session.Close()
+	// Optional. Switch the session to a monotonic behavior.
+	session.SetMode(mgo.Monotonic, true)
+	document := session.DB("REIT_DEV").C("REIT")
+	result := models.ReitItem{}
+	err := document.Find(bson.M{"symbol": symbol}).One(&result)
+	return result, err
 }
