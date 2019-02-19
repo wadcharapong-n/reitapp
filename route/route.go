@@ -18,5 +18,6 @@ func Init() *echo.Echo {
 	e.GET("/reit", api.GetReitAll)
 	e.GET("/reitFavorite/:id", api.GetFavoriteReitAll)
 	e.POST("/reitFavorite", api.SaveFavoriteReit)
+	e.GET("/reit/:symbol", api.GetReitBySymbol)
 	return e
 }
