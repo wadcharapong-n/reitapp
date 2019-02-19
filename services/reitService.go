@@ -25,3 +25,14 @@ func GetReitAll(c echo.Context) []*models.ReitItem {
 	}
 	return results
 }
+
+func SearchElastic() string {
+	client := app.GetElasticSearch()
+	esversion, err := client.ElasticsearchVersion("http://127.0.0.1:9200")
+	if err != nil {
+		// Handle error
+		panic(err)
+	}
+	fmt.Printf("Elasticsearch version %s\n", esversion)
+	return esversion
+}

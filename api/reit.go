@@ -13,3 +13,11 @@ func GetReitAll(c echo.Context) error {
 	results := services.GetReitAll(c)
 	return c.JSON(http.StatusOK, results)
 }
+
+func TestElasticSearch(c echo.Context) error {
+
+	results := services.SearchElastic()
+
+	return c.JSON(http.StatusOK, results)
+
+}

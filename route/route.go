@@ -16,5 +16,6 @@ func Init() *echo.Echo {
 
 	// Routes
 	e.GET("/reit", api.GetReitAll)
+	e.GET("/search", api.TestElasticSearch)
 	return e
 }
