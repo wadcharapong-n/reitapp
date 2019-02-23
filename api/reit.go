@@ -3,6 +3,7 @@ package api
 import (
 	"../models"
 	"../services"
+	"fmt"
 	"github.com/labstack/echo"
 	"net/http"
 )
