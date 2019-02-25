@@ -45,3 +45,12 @@ func SaveFavoriteReit(c echo.Context) error {
 	services.SaveReitFavorite(userID, ticker)
 	return c.String(http.StatusOK, "userId:"+userID+", ticker:"+ticker)
 }
+
+func DeleteFavoriteReit(c echo.Context) error {
+	// Get name and email
+	fmt.Println("start : DeleteFavoriteReit")
+	userID := c.FormValue("userId")
+	ticker := c.FormValue("Ticker")
+	services.DeleteReitFavorite(userID, ticker)
+	return c.String(http.StatusOK, "userId:"+userID+", ticker:"+ticker)
+}

@@ -89,7 +89,7 @@ func Init() *echo.Echo {
 
 	// API group
 	r := e.Group("/api")
-	// Configure middleware with the custom claims type
+	//Configure middleware with the custom claims type
 	config := middleware.JWTConfig{
 		Claims:     &jwtCustomClaims{},
 		SigningKey: []byte("secret"),
@@ -100,6 +100,7 @@ func Init() *echo.Echo {
 	r.GET("/reit", api.GetReitAll)
 	r.GET("/reitFavorite/:id", api.GetFavoriteReitAll)
 	r.POST("/reitFavorite", api.SaveFavoriteReit)
+	r.DELETE("/reitFavorite", api.DeleteFavoriteReit)
 	r.GET("/reit/:symbol", api.GetReitBySymbol)
 
 	return e
