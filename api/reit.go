@@ -45,3 +45,11 @@ func SaveFavoriteReit(c echo.Context) error {
 	services.SaveReitFavorite(userID, ticker)
 	return c.String(http.StatusOK, "userId:"+userID+", ticker:"+ticker)
 }
+
+func TestElasticSearch(c echo.Context) error {
+
+	results := services.SearchElastic()
+
+	return c.JSON(http.StatusOK, results)
+
+}

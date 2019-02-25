@@ -97,10 +97,12 @@ func Init() *echo.Echo {
 	r.Use(middleware.JWTWithConfig(config))
 	r.GET("", restricted)
 	// Routes
+
 	r.GET("/reit", api.GetReitAll)
 	r.GET("/reitFavorite/:id", api.GetFavoriteReitAll)
 	r.POST("/reitFavorite", api.SaveFavoriteReit)
 	r.GET("/reit/:symbol", api.GetReitBySymbol)
+	r.GET("/search", api.TestElasticSearch)
 
 	return e
 }
