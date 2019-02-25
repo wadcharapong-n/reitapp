@@ -102,7 +102,8 @@ func Init() *echo.Echo {
 	r.GET("/reitFavorite/:id", api.GetFavoriteReitAll)
 	r.POST("/reitFavorite", api.SaveFavoriteReit)
 	r.GET("/reit/:symbol", api.GetReitBySymbol)
-	r.GET("/search", api.TestElasticSearch)
+
+	e.GET("/search", api.TestElasticSearch)
 
 	return e
 }
