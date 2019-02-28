@@ -8,12 +8,14 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
+	"../models"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/facebook"
 	"golang.org/x/oauth2/google"
 	"io/ioutil"
 	"net/http"
 	"time"
+	"../services"
 )
 
 var (
@@ -35,31 +37,6 @@ var (
 	// Some random string, random for each request
 	oauthStateString = "random"
 )
-
-type Facebook struct {
-	ID     string `bson:"id"`
-	Name string `bson:"name"`
-	Email string `bson:"email"`
-}
-
-type Google struct {
-	ID     string `bson:"id"`
-	Name string `bson:"name"`
-	Email string `bson:"email"`
-	VerifiedEmail string `bson:"verified_email"`
-	GivenName string `bson:"given_name"`
-	FamilyName string `bson:"family_name"`
-	Link string `bson:"link"`
-	PictureURL string `bson:"picture"`
-	Gender string `bson:"gender"`
-	Locale string `bson:"locale"`
-}
-
-type jwtCustomClaims struct {
-	ID     string `bson:"id"`
-	Name string `bson:"name"`
-	jwt.StandardClaims
-}
 
 func Init() *echo.Echo {
 	// Echo instance
@@ -91,17 +68,17 @@ func Init() *echo.Echo {
 	r := e.Group("/api")
 	//Configure middleware with the custom claims type
 	config := middleware.JWTConfig{
-		Claims:     &jwtCustomClaims{},
+		Claims:     &models.JWTCustomClaims{},
 		SigningKey: []byte("secret"),
 	}
 	r.Use(middleware.JWTWithConfig(config))
-	r.GET("", restricted)
 	// Routes
 	r.GET("/reit", api.GetReitAll)
 	r.GET("/reitFavorite/:id", api.GetFavoriteReitAll)
 	r.POST("/reitFavorite", api.SaveFavoriteReit)
 	r.DELETE("/reitFavorite", api.DeleteFavoriteReit)
 	r.GET("/reit/:symbol", api.GetReitBySymbol)
+	r.GET("/profile",api.GetUserProfile)
 
 	return e
 }
@@ -138,8 +115,9 @@ func handleGoogleCallback(c echo.Context) error {
 
 	defer response.Body.Close()
 	contents, err := ioutil.ReadAll(response.Body)
-	google := Google{}
+	google := models.Google{}
 	json.Unmarshal(contents,&google)
+	services.CreateNewUserProfile(models.Facebook{},google)
 	CreateTokenFromGoogle(c,google)
 	return nil
 }
@@ -176,20 +154,24 @@ func handleFacebookCallback(c echo.Context) error {
 
 	defer response.Body.Close()
 	contents, err := ioutil.ReadAll(response.Body)
-	facebook := Facebook{}
-	json.Unmarshal(contents,&facebook)
-	CreateTokenFromFacebook(c,facebook)
+	if(err == nil){
+		facebook := models.Facebook{}
+		json.Unmarshal(contents,&facebook)
+		services.CreateNewUserProfile(facebook,models.Google{})
+		CreateTokenFromFacebook(c,facebook)
+	}
 	return nil
 
 }
 
-func CreateTokenFromFacebook(c echo.Context, facebook Facebook) error {
+func CreateTokenFromFacebook(c echo.Context, facebook models.Facebook) error {
 	// Set custom claims
-	claims := &jwtCustomClaims {
+	claims := &models.JWTCustomClaims {
 		facebook.ID,
 		facebook.Name,
+		"facebook",
 		jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Hour * 72).Unix(),
+			ExpiresAt: time.Now().Add(time.Hour * 1).Unix(),
 		},
 	}
 
@@ -205,13 +187,14 @@ func CreateTokenFromFacebook(c echo.Context, facebook Facebook) error {
 	})
 }
 
-func CreateTokenFromGoogle(c echo.Context, google Google) error {
+func CreateTokenFromGoogle(c echo.Context, google models.Google) error {
 	// Set custom claims
-	claims := &jwtCustomClaims {
+	claims := &models.JWTCustomClaims {
 		google.ID,
 		google.Name,
+		"google",
 		jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Hour * 72).Unix(),
+			ExpiresAt: time.Now().Add(time.Hour * 1).Unix(),
 		},
 	}
 	// Create token
@@ -230,9 +213,8 @@ func accessible(c echo.Context) error {
 	return c.String(http.StatusOK, "Accessible")
 }
 
-func restricted(c echo.Context) error {
-	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(*jwtCustomClaims)
-	name := claims.Name
-	return c.String(http.StatusOK, "Welcome "+name+"!")
+func logout(c echo.Context) error {
+	
+	return c.String(http.StatusOK, "logout")
 }
+

@@ -3,6 +3,7 @@ package api
 import (
 	"../models"
 	"../services"
+	"../util"
 	"fmt"
 	"github.com/labstack/echo"
 	"net/http"
@@ -43,7 +44,7 @@ func SaveFavoriteReit(c echo.Context) error {
 	userID := c.FormValue("userId")
 	ticker := c.FormValue("Ticker")
 	services.SaveReitFavorite(userID, ticker)
-	return c.String(http.StatusOK, "userId:"+userID+", ticker:"+ticker)
+	return c.String(http.StatusOK, "success")
 }
 
 func DeleteFavoriteReit(c echo.Context) error {
@@ -52,5 +53,11 @@ func DeleteFavoriteReit(c echo.Context) error {
 	userID := c.FormValue("userId")
 	ticker := c.FormValue("Ticker")
 	services.DeleteReitFavorite(userID, ticker)
-	return c.String(http.StatusOK, "userId:"+userID+", ticker:"+ticker)
+	return c.String(http.StatusOK, "success",)
+}
+
+func GetUserProfile(c echo.Context) error {
+	userID,site := util.GetUserFromToken(c);
+	profile := services.GetUserProfileByCriteria(userID, site)
+	return c.JSON(http.StatusOK, profile)
 }
