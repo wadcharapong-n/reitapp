@@ -14,8 +14,10 @@ type ReitItem struct {
 	RegistrationDate  string `bson:"registrationDate"`
 	ReitManager       string `bson:"reitManager"`
 	ParValue          string `bson:"parValue"`
-	CeillingValue     string `bson:"ceillingValue"`
-	ParNAV            string `bson:"parNAV"`
+	CeilingValue      string `bson:"ceilingValue"`
+	FloorValue		  string `bson:"floorValue"`
+	PeValue           string `bson:"parNAV"`
+	ParNAV            string `bson:"peValue"`
 	Policy            string `bson:"policy"`
 	PriceOfDay        string `bson:"priceOfDay"`
 	MaxPriceOfDay     string `bson:"maxPriceOfDay"`

@@ -1,21 +1,22 @@
 package route
 
 import (
-	"../api"
-	"../config"
 	"encoding/json"
 	"fmt"
-	"github.com/dgrijalva/jwt-go"
-	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
-	"../models"
-	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/facebook"
-	"golang.org/x/oauth2/google"
 	"io/ioutil"
 	"net/http"
 	"time"
+
+	"../api"
+	"../config"
+	"../models"
 	"../services"
+	"github.com/dgrijalva/jwt-go"
+	"github.com/labstack/echo"
+	"github.com/labstack/echo/middleware"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/facebook"
+	"golang.org/x/oauth2/google"
 )
 
 var (
@@ -67,18 +68,19 @@ func Init() *echo.Echo {
 	// API group
 	r := e.Group("/api")
 	//Configure middleware with the custom claims type
-	config := middleware.JWTConfig{
-		Claims:     &models.JWTCustomClaims{},
-		SigningKey: []byte("secret"),
-	}
-	r.Use(middleware.JWTWithConfig(config))
+	// config := middleware.JWTConfig{
+	// 	Claims:     &models.JWTCustomClaims{},
+	// 	SigningKey: []byte("secret"),
+	// }
+	// r.Use(middleware.JWTWithConfig(config))
+
 	// Routes
 	r.GET("/reit", api.GetReitAll)
 	r.GET("/reitFavorite/:id", api.GetFavoriteReitAll)
 	r.POST("/reitFavorite", api.SaveFavoriteReit)
 	r.DELETE("/reitFavorite", api.DeleteFavoriteReit)
 	r.GET("/reit/:symbol", api.GetReitBySymbol)
-	r.GET("/profile",api.GetUserProfile)
+	r.GET("/profile", api.GetUserProfile)
 
 	return e
 }
@@ -116,9 +118,9 @@ func handleGoogleCallback(c echo.Context) error {
 	defer response.Body.Close()
 	contents, err := ioutil.ReadAll(response.Body)
 	google := models.Google{}
-	json.Unmarshal(contents,&google)
-	services.CreateNewUserProfile(models.Facebook{},google)
-	CreateTokenFromGoogle(c,google)
+	json.Unmarshal(contents, &google)
+	services.CreateNewUserProfile(models.Facebook{}, google)
+	CreateTokenFromGoogle(c, google)
 	return nil
 }
 
@@ -154,11 +156,11 @@ func handleFacebookCallback(c echo.Context) error {
 
 	defer response.Body.Close()
 	contents, err := ioutil.ReadAll(response.Body)
-	if(err == nil){
+	if err == nil {
 		facebook := models.Facebook{}
-		json.Unmarshal(contents,&facebook)
-		services.CreateNewUserProfile(facebook,models.Google{})
-		CreateTokenFromFacebook(c,facebook)
+		json.Unmarshal(contents, &facebook)
+		services.CreateNewUserProfile(facebook, models.Google{})
+		CreateTokenFromFacebook(c, facebook)
 	}
 	return nil
 
@@ -166,7 +168,7 @@ func handleFacebookCallback(c echo.Context) error {
 
 func CreateTokenFromFacebook(c echo.Context, facebook models.Facebook) error {
 	// Set custom claims
-	claims := &models.JWTCustomClaims {
+	claims := &models.JWTCustomClaims{
 		facebook.ID,
 		facebook.Name,
 		"facebook",
@@ -176,7 +178,7 @@ func CreateTokenFromFacebook(c echo.Context, facebook models.Facebook) error {
 	}
 
 	// Create token
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256,claims)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	// Generate encoded token and send it as response.
 	t, err := token.SignedString([]byte("secret"))
 	if err != nil {
@@ -189,7 +191,7 @@ func CreateTokenFromFacebook(c echo.Context, facebook models.Facebook) error {
 
 func CreateTokenFromGoogle(c echo.Context, google models.Google) error {
 	// Set custom claims
-	claims := &models.JWTCustomClaims {
+	claims := &models.JWTCustomClaims{
 		google.ID,
 		google.Name,
 		"google",
@@ -198,7 +200,7 @@ func CreateTokenFromGoogle(c echo.Context, google models.Google) error {
 		},
 	}
 	// Create token
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256,claims)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	// Generate encoded token and send it as response.
 	t, err := token.SignedString([]byte("secret"))
 	if err != nil {
@@ -214,7 +216,6 @@ func accessible(c echo.Context) error {
 }
 
 func logout(c echo.Context) error {
-	
+
 	return c.String(http.StatusOK, "logout")
 }
-
