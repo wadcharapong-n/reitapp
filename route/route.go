@@ -62,6 +62,8 @@ func Init() *echo.Echo {
 	a.GET("/FacebookLogin", handleFacebookLogin)
 	a.GET("/FacebookCallback", handleFacebookCallback)
 
+	a.GET("", authentication)
+
 	// Unauthenticated route
 	a.GET("/", accessible)
 
@@ -91,7 +93,7 @@ func handleGoogleLogin(c echo.Context) error {
 	r := c.Request()
 	url := googleOauthConfig.AuthCodeURL(oauthStateString)
 	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
-	return nil
+	return c.String(http.StatusUnauthorized,"")
 }
 
 func handleGoogleCallback(c echo.Context) error {
@@ -117,11 +119,13 @@ func handleGoogleCallback(c echo.Context) error {
 
 	defer response.Body.Close()
 	contents, err := ioutil.ReadAll(response.Body)
-	google := models.Google{}
-	json.Unmarshal(contents, &google)
-	services.CreateNewUserProfile(models.Facebook{}, google)
-	CreateTokenFromGoogle(c, google)
-	return nil
+	if err == nil {
+		google := models.Google{}
+		json.Unmarshal(contents, &google)
+		services.CreateNewUserProfile(models.Facebook{}, google)
+		CreateTokenFromGoogle(c, google)
+	}
+	return c.String(http.StatusUnauthorized,"")
 }
 
 func handleFacebookLogin(c echo.Context) error {
@@ -130,7 +134,7 @@ func handleFacebookLogin(c echo.Context) error {
 	r := c.Request()
 	url := facebookOauthConfig.AuthCodeURL(oauthStateString)
 	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
-	return nil
+	return c.String(http.StatusUnauthorized,"")
 }
 
 func handleFacebookCallback(c echo.Context) error {
@@ -162,7 +166,7 @@ func handleFacebookCallback(c echo.Context) error {
 		services.CreateNewUserProfile(facebook, models.Google{})
 		CreateTokenFromFacebook(c, facebook)
 	}
-	return nil
+	return c.String(http.StatusUnauthorized,"")
 
 }
 
@@ -215,7 +219,43 @@ func accessible(c echo.Context) error {
 	return c.String(http.StatusOK, "Accessible")
 }
 
-func logout(c echo.Context) error {
+func authentication(c echo.Context) error {
+	token := c.QueryParam("token")
+	site := c.QueryParam("site")
 
-	return c.String(http.StatusOK, "logout")
+	if site == "facebook" {
+		getProfileFacebook(token,c)
+	}else if site == "google" {
+		getProfileGoogle(token,c)
+	}
+
+	return c.String(http.StatusUnauthorized, "")
+}
+
+func getProfileFacebook(token string,c echo.Context) error{
+	response, err := http.Get(config.URL_access_token_Facebook + token)
+
+	defer response.Body.Close()
+	contents, err := ioutil.ReadAll(response.Body)
+	if err == nil {
+		facebook := models.Facebook{}
+		json.Unmarshal(contents, &facebook)
+		services.CreateNewUserProfile(facebook, models.Google{})
+		CreateTokenFromFacebook(c, facebook)
+	}
+	return c.String(http.StatusUnauthorized, "")
+}
+
+func getProfileGoogle(token string,c echo.Context) error{
+	response, err := http.Get(config.URL_access_token_Google + token)
+
+	defer response.Body.Close()
+	contents, err := ioutil.ReadAll(response.Body)
+	if err == nil {
+		google := models.Google{}
+		json.Unmarshal(contents, &google)
+		services.CreateNewUserProfile(models.Facebook{}, google)
+		CreateTokenFromGoogle(c, google)
+	}
+	return c.String(http.StatusUnauthorized, "")
 }
