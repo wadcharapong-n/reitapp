@@ -37,7 +37,7 @@ func SaveReitFavorite(userId string, ticker string) {
 	// Optional. Switch the session to a monotonic behavior.
 	session.SetMode(mgo.Monotonic, true)
 	document := session.DB("REIT_DEV").C("Favorite")
-	favorite := models.Favorite{UserId: userId, Ticker: ticker}
+	favorite := models.Favorite{UserId: userId, Symbol: ticker}
 	err := document.Insert(&favorite)
 	if err != nil {
 		// TODO: Do something about the error
@@ -54,7 +54,7 @@ func DeleteReitFavorite(userId string, ticker string) {
 	// Optional. Switch the session to a monotonic behavior.
 	session.SetMode(mgo.Monotonic, true)
 	document := session.DB("REIT_DEV").C("Favorite")
-	favorite := models.Favorite{UserId: userId, Ticker: ticker}
+	favorite := models.Favorite{UserId: userId, Symbol: ticker}
 	err := document.Remove(&favorite)
 	if err != nil {
 		// TODO: Do something about the error
@@ -64,15 +64,47 @@ func DeleteReitFavorite(userId string, ticker string) {
 	}
 }
 
-func GetReitFavoriteByUserID(userId string) []*models.Favorite {
+//func GetReitFavoriteByUserID(userId string) []*models.Favorite {
+//	fmt.Println("start : GetReitAll")
+//	session := *app.GetDocumentMongo()
+//	defer session.Close()
+//	// Optional. Switch the session to a monotonic behavior.
+//	session.SetMode(mgo.Monotonic, true)
+//	document := session.DB("REIT_DEV").C("Favorite")
+//	results := []*models.Favorite{}
+//
+//	err := document.Find(bson.M{"userId": userId }).All(&results)
+//	if err != nil {
+//		// TODO: Do something about the error
+//		fmt.Printf("error : ", err)
+//	} else {
+//
+//	}
+//	return results
+//}
+
+func GetReitFavoriteByUserIDJoin(userId string) []*models.FavoriteInfo {
 	fmt.Println("start : GetReitAll")
 	session := *app.GetDocumentMongo()
 	defer session.Close()
 	// Optional. Switch the session to a monotonic behavior.
 	session.SetMode(mgo.Monotonic, true)
 	document := session.DB("REIT_DEV").C("Favorite")
-	results := []*models.Favorite{}
-	err := document.Find(bson.M{"userId": userId}).All(&results)
+	results := []*models.FavoriteInfo{}
+
+	query := []bson.M{{
+		"$lookup": bson.M{ // lookup the documents table here
+			"from":         "REIT",
+			"localField":   "symbol",
+			"foreignField": "symbol",
+			"as":           "Reit",
+		}},
+		{"$match": bson.M{
+			"userId": userId,
+		}}}
+
+	pipe := document.Pipe(query)
+	err := pipe.All(&results)
 	if err != nil {
 		// TODO: Do something about the error
 		fmt.Printf("error : ", err)

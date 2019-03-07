@@ -34,7 +34,7 @@ func GetFavoriteReitAll(c echo.Context) error {
 	fmt.Println("start : GetFavoriteReitAll")
 	userID := c.Param("id")
 	fmt.Println("userID :: " + userID)
-	results := services.GetReitFavoriteByUserID(userID)
+	results := services.GetReitFavoriteByUserIDJoin(userID)
 	return c.JSON(http.StatusOK, results)
 }
 

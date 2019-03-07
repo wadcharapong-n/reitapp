@@ -27,8 +27,15 @@ type ReitItem struct {
 
 type Favorite struct {
 	// ID     string `bson:"_id"`
-	Ticker string `bson:"ticker"`
+	Symbol string `bson:"symbol"`
 	UserId string `bson:"userId"`
+}
+
+type FavoriteInfo struct {
+	// ID     string `bson:"_id"`
+	Symbol string `bson:"symbol"`
+	UserId string `bson:"userId"`
+	ReitItem []ReitItem `bson:"Reit"`
 }
 
 type JWTCustomClaims struct {
