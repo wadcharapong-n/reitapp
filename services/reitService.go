@@ -8,7 +8,36 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-func GetReitAll() ([]*models.ReitItem, error) {
+type ReitServicer interface {
+	GetReitBySymbol(symbol string) (models.ReitItem, error)
+	GetReitAll() ([]*models.ReitItem, error)
+	SaveReitFavorite(userId string, symbol string) error
+	DeleteReitFavorite(userId string, ticker string) error
+	GetReitFavoriteByUserIDJoin(userId string) []*models.FavoriteInfo
+}
+
+type Reit struct {
+
+}
+
+func GetReitAllProcess(reitService ReitServicer) ([]*models.ReitItem, error) {
+	return reitService.GetReitAll()
+}
+
+func GetReitBySymbolProcess(reitService ReitServicer,symbol string) (models.ReitItem, error) {
+	return reitService.GetReitBySymbol(symbol)
+}
+
+func GetReitFavoriteByUserIDJoinProcess(reitService ReitServicer,userId string) []*models.FavoriteInfo {
+	return reitService.GetReitFavoriteByUserIDJoin(userId)
+}
+func SaveReitFavoriteProcess(reitService ReitServicer,userId string, symbol string) error {
+	return reitService.SaveReitFavorite(userId,symbol)
+}
+func DeleteReitFavoriteProcess(reitService ReitServicer,userId string, symbol string) error{
+	return reitService.DeleteReitFavorite(userId,symbol)
+}
+func (self Reit) GetReitAll() ([]*models.ReitItem, error) {
 	session := *app.GetDocumentMongo()
 	defer session.Close()
 	// Optional. Switch the session to a monotonic behavior.
@@ -19,7 +48,8 @@ func GetReitAll() ([]*models.ReitItem, error) {
 	return results, err
 }
 
-func GetReitBySymbol(symbol string) (models.ReitItem, error) {
+
+func (self Reit) GetReitBySymbol(symbol string) (models.ReitItem, error) {
 	session := *app.GetDocumentMongo()
 	defer session.Close()
 	// Optional. Switch the session to a monotonic behavior.
@@ -30,14 +60,16 @@ func GetReitBySymbol(symbol string) (models.ReitItem, error) {
 	return result, err
 }
 
-func SaveReitFavorite(userId string, ticker string) {
+
+
+func (self Reit) SaveReitFavorite(userId string, symbol string) error {
 	fmt.Println("start : GetReitAll")
 	session := *app.GetDocumentMongo()
 	defer session.Close()
 	// Optional. Switch the session to a monotonic behavior.
 	session.SetMode(mgo.Monotonic, true)
 	document := session.DB("REIT_DEV").C("Favorite")
-	favorite := models.Favorite{UserId: userId, Symbol: ticker}
+	favorite := models.Favorite{UserId: userId, Symbol: symbol}
 	err := document.Insert(&favorite)
 	if err != nil {
 		// TODO: Do something about the error
@@ -45,9 +77,10 @@ func SaveReitFavorite(userId string, ticker string) {
 	} else {
 
 	}
+	return err
 }
 
-func DeleteReitFavorite(userId string, ticker string) {
+func (self Reit) DeleteReitFavorite(userId string, ticker string) error{
 	fmt.Println("start : GetReitAll")
 	session := *app.GetDocumentMongo()
 	defer session.Close()
@@ -62,6 +95,7 @@ func DeleteReitFavorite(userId string, ticker string) {
 	} else {
 
 	}
+	return err
 }
 
 //func GetReitFavoriteByUserID(userId string) []*models.Favorite {
@@ -83,7 +117,7 @@ func DeleteReitFavorite(userId string, ticker string) {
 //	return results
 //}
 
-func GetReitFavoriteByUserIDJoin(userId string) []*models.FavoriteInfo {
+func (self Reit) GetReitFavoriteByUserIDJoin(userId string) []*models.FavoriteInfo {
 	fmt.Println("start : GetReitAll")
 	session := *app.GetDocumentMongo()
 	defer session.Close()
