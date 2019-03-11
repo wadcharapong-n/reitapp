@@ -13,7 +13,7 @@ func TestRouterReitWithSuccess(t *testing.T) {
 	ts := httptest.NewServer(r)
 	defer ts.Close()
 
-	res, err := http.Get(ts.URL + "/reit")
+	res, err := http.Get(ts.URL + "/api/reit")
 	if err != nil {
 		t.Fatal(err)
 	}

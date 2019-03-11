@@ -77,11 +77,11 @@ func Init() *echo.Echo {
 	// r.Use(middleware.JWTWithConfig(config))
 
 	// Routes
-	r.GET("/reit", api.GetReitAll)
-	r.GET("/reitFavorite/:id", api.GetFavoriteReitAll)
-	r.POST("/reitFavorite", api.SaveFavoriteReit)
-	r.DELETE("/reitFavorite", api.DeleteFavoriteReit)
-	r.GET("/reit/:symbol", api.GetReitBySymbol)
+	r.GET("/reit", api.GetReitAllProcess)
+	r.GET("/reitFavorite/:id", api.GetFavoriteReitAllProcess)
+	r.POST("/reitFavorite", api.SaveFavoriteReitProcess)
+	r.DELETE("/reitFavorite", api.DeleteFavoriteReitProcess)
+	r.GET("/reit/:symbol", api.GetReitBySymbolProcess)
 	r.GET("/profile", api.GetUserProfile)
 
 	return e
