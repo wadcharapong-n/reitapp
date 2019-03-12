@@ -74,7 +74,7 @@ func Init() *echo.Echo {
 	// 	Claims:     &models.JWTCustomClaims{},
 	// 	SigningKey: []byte("secret"),
 	// }
-	// r.Use(middleware.JWTWithConfig(config))
+	//r.Use(middleware.JWTWithConfig(config))
 
 	// Routes
 	r.GET("/reit", api.GetReitAllProcess)

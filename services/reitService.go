@@ -16,8 +16,11 @@ type ReitServicer interface {
 	GetReitFavoriteByUserIDJoin(userId string) []*models.FavoriteInfo
 }
 
-type Reit struct {
-
+type Reit_Service struct {
+	reitItems []*models.ReitItem
+	reitItem models.ReitItem
+	reitFavorite []*models.FavoriteInfo
+	err error
 }
 
 func GetReitAllProcess(reitService ReitServicer) ([]*models.ReitItem, error) {
@@ -37,32 +40,30 @@ func SaveReitFavoriteProcess(reitService ReitServicer,userId string, symbol stri
 func DeleteReitFavoriteProcess(reitService ReitServicer,userId string, symbol string) error{
 	return reitService.DeleteReitFavorite(userId,symbol)
 }
-func (self Reit) GetReitAll() ([]*models.ReitItem, error) {
+func (self Reit_Service) GetReitAll() ([]*models.ReitItem, error) {
 	session := *app.GetDocumentMongo()
 	defer session.Close()
 	// Optional. Switch the session to a monotonic behavior.
 	session.SetMode(mgo.Monotonic, true)
 	document := session.DB("REIT_DEV").C("REIT")
-	results := []*models.ReitItem{}
-	err := document.Find(nil).All(&results)
-	return results, err
+	self.err = document.Find(nil).All(&self.reitItems)
+	return self.reitItems, self.err
 }
 
 
-func (self Reit) GetReitBySymbol(symbol string) (models.ReitItem, error) {
+func (self Reit_Service) GetReitBySymbol(symbol string) (models.ReitItem, error) {
 	session := *app.GetDocumentMongo()
 	defer session.Close()
 	// Optional. Switch the session to a monotonic behavior.
 	session.SetMode(mgo.Monotonic, true)
 	document := session.DB("REIT_DEV").C("REIT")
-	result := models.ReitItem{}
-	err := document.Find(bson.M{"symbol": symbol}).One(&result)
-	return result, err
+	self.err = document.Find(bson.M{"symbol": symbol}).One(&self.reitItem)
+	return self.reitItem, self.err
 }
 
 
 
-func (self Reit) SaveReitFavorite(userId string, symbol string) error {
+func (self Reit_Service) SaveReitFavorite(userId string, symbol string) error {
 	fmt.Println("start : GetReitAll")
 	session := *app.GetDocumentMongo()
 	defer session.Close()
@@ -70,17 +71,17 @@ func (self Reit) SaveReitFavorite(userId string, symbol string) error {
 	session.SetMode(mgo.Monotonic, true)
 	document := session.DB("REIT_DEV").C("Favorite")
 	favorite := models.Favorite{UserId: userId, Symbol: symbol}
-	err := document.Insert(&favorite)
-	if err != nil {
+	self.err = document.Insert(&favorite)
+	if self.err != nil {
 		// TODO: Do something about the error
-		fmt.Printf("error : ", err)
+		fmt.Printf("error : ", self.err)
 	} else {
 
 	}
-	return err
+	return self.err
 }
 
-func (self Reit) DeleteReitFavorite(userId string, ticker string) error{
+func (self Reit_Service) DeleteReitFavorite(userId string, ticker string) error{
 	fmt.Println("start : GetReitAll")
 	session := *app.GetDocumentMongo()
 	defer session.Close()
@@ -88,14 +89,14 @@ func (self Reit) DeleteReitFavorite(userId string, ticker string) error{
 	session.SetMode(mgo.Monotonic, true)
 	document := session.DB("REIT_DEV").C("Favorite")
 	favorite := models.Favorite{UserId: userId, Symbol: ticker}
-	err := document.Remove(&favorite)
-	if err != nil {
+	self.err = document.Remove(&favorite)
+	if self.err != nil {
 		// TODO: Do something about the error
-		fmt.Printf("error : ", err)
+		fmt.Printf("error : ", self.err)
 	} else {
 
 	}
-	return err
+	return self.err
 }
 
 //func GetReitFavoriteByUserID(userId string) []*models.Favorite {
@@ -117,14 +118,13 @@ func (self Reit) DeleteReitFavorite(userId string, ticker string) error{
 //	return results
 //}
 
-func (self Reit) GetReitFavoriteByUserIDJoin(userId string) []*models.FavoriteInfo {
+func (self Reit_Service) GetReitFavoriteByUserIDJoin(userId string) []*models.FavoriteInfo {
 	fmt.Println("start : GetReitAll")
 	session := *app.GetDocumentMongo()
 	defer session.Close()
 	// Optional. Switch the session to a monotonic behavior.
 	session.SetMode(mgo.Monotonic, true)
 	document := session.DB("REIT_DEV").C("Favorite")
-	results := []*models.FavoriteInfo{}
 
 	query := []bson.M{{
 		"$lookup": bson.M{ // lookup the documents table here
@@ -138,14 +138,14 @@ func (self Reit) GetReitFavoriteByUserIDJoin(userId string) []*models.FavoriteIn
 		}}}
 
 	pipe := document.Pipe(query)
-	err := pipe.All(&results)
+	err := pipe.All(&self.reitFavorite)
 	if err != nil {
 		// TODO: Do something about the error
 		fmt.Printf("error : ", err)
 	} else {
 
 	}
-	return results
+	return self.reitFavorite
 }
 
 func CreateNewUserProfile(facebook models.Facebook,google models.Google )  {

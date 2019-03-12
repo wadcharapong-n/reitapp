@@ -18,7 +18,11 @@ type ReitController interface {
 }
 
 type Reit struct {
-	services.Reit
+	reitServicer services.ReitServicer
+	reitItems []*models.ReitItem
+	reitItem models.ReitItem
+	reitFavorite []*models.FavoriteInfo
+	err error
 }
 
 
@@ -54,36 +58,34 @@ func SaveFavoriteReitProcess(c echo.Context) error {
 
 // Handler
 func (self Reit) GetReitAll(c echo.Context) error {
-	var reitService  services.ReitServicer
-	reitService = self.Reit
-	results ,err := services.GetReitAllProcess(reitService)
-	if err != nil {
+
+	self.reitServicer = services.Reit_Service{}
+	self.reitItems ,self.err = services.GetReitAllProcess(self.reitServicer)
+	if self.err != nil {
 		return echo.NewHTTPError(http.StatusNotFound, "data not found")
 	}
-	return c.JSON(http.StatusOK, results)
+	return c.JSON(http.StatusOK, self.reitItems)
 }
 
 func (self Reit) GetReitBySymbol(c echo.Context) error {
 	symbol := c.Param("symbol")
-	var reitService services.ReitServicer
-	reitService = self.Reit
-	result, err := services.GetReitBySymbolProcess(reitService,symbol)
-	if result == (models.ReitItem{}) {
+	self.reitServicer = services.Reit_Service{}
+	self.reitItem, self.err = services.GetReitBySymbolProcess(self.reitServicer,symbol)
+	if self.reitItem == (models.ReitItem{}) {
 		return echo.NewHTTPError(http.StatusNotFound, "data not found")
 	}
-	if err != nil {
-		return echo.NewHTTPError(http.StatusOK, err)
+	if self.err != nil {
+		return echo.NewHTTPError(http.StatusOK, self.err)
 	}
-	return c.JSON(http.StatusOK, result)
+	return c.JSON(http.StatusOK, self.reitItem)
 }
 
 func (self Reit) GetFavoriteReitAll(c echo.Context) error {
 	fmt.Println("start : GetFavoriteReitAll")
 	userID := c.Param("id")
-	var reitService services.ReitServicer
-	reitService = services.Reit{}
-	results := services.GetReitFavoriteByUserIDJoinProcess(reitService,userID)
-	return c.JSON(http.StatusOK, results)
+	self.reitServicer = services.Reit_Service{}
+	self.reitFavorite = services.GetReitFavoriteByUserIDJoinProcess(self.reitServicer,userID)
+	return c.JSON(http.StatusOK, self.reitFavorite)
 }
 
 func (self Reit) SaveFavoriteReit(c echo.Context) error {
@@ -91,10 +93,9 @@ func (self Reit) SaveFavoriteReit(c echo.Context) error {
 	fmt.Println("start : SaveFavoriteReit")
 	userID := c.FormValue("userId")
 	ticker := c.FormValue("Ticker")
-	var reitService services.ReitServicer
-	reitService = services.Reit{}
-	err := services.SaveReitFavoriteProcess(reitService, userID, ticker)
-	if err != nil {
+	self.reitServicer = services.Reit_Service{}
+	self.err = services.SaveReitFavoriteProcess(self.reitServicer, userID, ticker)
+	if self.err != nil {
 		return c.String(http.StatusBadRequest, "fail")
 	}
 	return c.String(http.StatusOK, "success")
@@ -105,10 +106,9 @@ func (self Reit) DeleteFavoriteReit(c echo.Context) error {
 	fmt.Println("start : DeleteFavoriteReit")
 	userID := c.FormValue("userId")
 	ticker := c.FormValue("Ticker")
-	var reitService services.ReitServicer
-	reitService = services.Reit{}
-	err := services.DeleteReitFavoriteProcess(reitService, userID, ticker)
-	if err != nil {
+	self.reitServicer = services.Reit_Service{}
+	self.err = services.DeleteReitFavoriteProcess(self.reitServicer , userID, ticker)
+	if self.err != nil {
 		return c.String(http.StatusBadRequest, "fail")
 	}
 	return c.String(http.StatusOK, "success")
@@ -119,3 +119,4 @@ func GetUserProfile(c echo.Context) error {
 	profile := services.GetUserProfileByCriteria(userID, site)
 	return c.JSON(http.StatusOK, profile)
 }
+
