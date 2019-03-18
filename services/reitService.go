@@ -14,12 +14,15 @@ type ReitServicer interface {
 	SaveReitFavorite(userId string, symbol string) error
 	DeleteReitFavorite(userId string, ticker string) error
 	GetReitFavoriteByUserIDJoin(userId string) []*models.FavoriteInfo
+	GetUserProfileByCriteria(userId string, site string ) models.UserProfile
+	SaveUserProfile(profile *models.UserProfile) string
 }
 
 type Reit_Service struct {
 	reitItems []*models.ReitItem
 	reitItem models.ReitItem
 	reitFavorite []*models.FavoriteInfo
+	userProfile models.UserProfile
 	err error
 }
 
@@ -34,12 +37,23 @@ func GetReitBySymbolProcess(reitService ReitServicer,symbol string) (models.Reit
 func GetReitFavoriteByUserIDJoinProcess(reitService ReitServicer,userId string) []*models.FavoriteInfo {
 	return reitService.GetReitFavoriteByUserIDJoin(userId)
 }
+
 func SaveReitFavoriteProcess(reitService ReitServicer,userId string, symbol string) error {
 	return reitService.SaveReitFavorite(userId,symbol)
 }
+
+func GetUserProfileByCriteriaProcess(reitService ReitServicer,userId string, site string) models.UserProfile {
+	return reitService.GetUserProfileByCriteria(userId,site)
+}
+
 func DeleteReitFavoriteProcess(reitService ReitServicer,userId string, symbol string) error{
 	return reitService.DeleteReitFavorite(userId,symbol)
 }
+
+func SaveUserProfileProcess(reitService ReitServicer,profile *models.UserProfile) string {
+	return reitService.SaveUserProfile(profile);
+}
+
 func (self Reit_Service) GetReitAll() ([]*models.ReitItem, error) {
 	session := *app.GetDocumentMongo()
 	defer session.Close()
@@ -148,10 +162,12 @@ func (self Reit_Service) GetReitFavoriteByUserIDJoin(userId string) []*models.Fa
 	return self.reitFavorite
 }
 
-func CreateNewUserProfile(facebook models.Facebook,google models.Google )  {
-
+func CreateNewUserProfile(facebook models.Facebook,google models.Google ) string {
+	var reitServicer ReitServicer
+	reitServicer = Reit_Service{}
+	var message string
 	if (facebook != models.Facebook{}){
-		userProfile := GetUserProfileByCriteria(facebook.ID, "facebook");
+		userProfile := reitServicer.GetUserProfileByCriteria(facebook.ID, "facebook")
 		if(userProfile == models.UserProfile{}){
 			userProfile =  models.UserProfile{
 				UserID: facebook.ID,
@@ -159,10 +175,10 @@ func CreateNewUserProfile(facebook models.Facebook,google models.Google )  {
 				FullName:facebook.Name,
 				Email:facebook.Email,
 				Site:"facebook"}
-			SaveUserProfile(&userProfile)
+			message = reitServicer.SaveUserProfile(&userProfile)
 		}
 	} else if (google != models.Google{}){
-		userProfile := GetUserProfileByCriteria(google.ID, "google");
+		userProfile := reitServicer.GetUserProfileByCriteria(google.ID, "google")
 		if(userProfile == models.UserProfile{}){
 			userProfile =  models.UserProfile{
 				UserID: google.ID,
@@ -171,12 +187,13 @@ func CreateNewUserProfile(facebook models.Facebook,google models.Google )  {
 				Image:google.Picture,
 				Email:google.Email,
 				Site:"google"}
-			SaveUserProfile(&userProfile)
+			message = reitServicer.SaveUserProfile(&userProfile)
 		}
 	}
+	return message
 }
 
-func SaveUserProfile(profile *models.UserProfile) {
+func (self Reit_Service) SaveUserProfile(profile *models.UserProfile) string {
 	session := *app.GetDocumentMongo()
 	defer session.Close()
 	// Optional. Switch the session to a monotonic behavior.
@@ -184,26 +201,24 @@ func SaveUserProfile(profile *models.UserProfile) {
 	document := session.DB("REIT_DEV").C("UserProfile")
 	err := document.Insert(&profile)
 	if err != nil {
-		// TODO: Do something about the error
-		fmt.Printf("error : ", err)
+		return "fail"
 	} else {
-
+		return "success"
 	}
 }
 
-func GetUserProfileByCriteria(userId string, site string ) models.UserProfile {
+func (self Reit_Service) GetUserProfileByCriteria(userId string, site string ) models.UserProfile {
 	session := *app.GetDocumentMongo()
 	defer session.Close()
 	// Optional. Switch the session to a monotonic behavior.
 	session.SetMode(mgo.Monotonic, true)
 	document := session.DB("REIT_DEV").C("UserProfile")
-	results := models.UserProfile{}
-	err := document.Find(bson.M{"userID": userId,"site": site}).One(&results)
+	err := document.Find(bson.M{"userID": userId,"site": site}).One(&self.userProfile)
 	if err != nil {
 		// TODO: Do something about the error
 		fmt.Printf("error : ", err)
 	} else {
 
 	}
-	return results
+	return self.userProfile
 }

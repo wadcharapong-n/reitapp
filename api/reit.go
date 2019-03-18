@@ -123,7 +123,8 @@ func (self Reit) DeleteFavoriteReit(c echo.Context) error {
 
 func (self Reit) GetUserProfile(c echo.Context) error {
 	userID,site := util.GetUserFromToken(c);
-	profile := services.GetUserProfileByCriteria(userID, site)
+	self.reitServicer = services.Reit_Service{}
+	profile := services.GetUserProfileByCriteriaProcess(self.reitServicer,userID, site)
 	return c.JSON(http.StatusOK, profile)
 }
 

@@ -8,6 +8,14 @@ import (
 
 type ReitMock struct {}
 
+func (self ReitMock) GetUserProfileByCriteria(userId string, site string) models.UserProfile {
+	panic("implement me")
+}
+
+func (self ReitMock) SaveUserProfile(profile *models.UserProfile) string {
+	panic("implement me")
+}
+
 func (self ReitMock) GetReitAll() ([]*models.ReitItem, error) {
 	return nil, nil
 }
