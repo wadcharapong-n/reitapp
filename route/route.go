@@ -70,11 +70,11 @@ func Init() *echo.Echo {
 	// API group
 	r := e.Group("/api")
 	//Configure middleware with the custom claims type
-	//config := middleware.JWTConfig{
-	//Claims:     &models.JWTCustomClaims{},
-	//SigningKey: []byte("secret"),
-	//}
-	//r.Use(middleware.JWTWithConfig(config))
+	config := middleware.JWTConfig{
+		Claims:     &models.JWTCustomClaims{},
+		SigningKey: []byte("secret"),
+	}
+	r.Use(middleware.JWTWithConfig(config))
 
 	// Routes
 	r.GET("/reit", api.GetReitAllProcess)
@@ -122,7 +122,9 @@ func handleGoogleCallback(c echo.Context) error {
 	if err == nil {
 		google := models.Google{}
 		json.Unmarshal(contents, &google)
-		services.CreateNewUserProfile(models.Facebook{}, google)
+		var reitServicer services.ReitServicer
+		reitServicer = services.Reit_Service{}
+		services.CreateNewUserProfileProcess(reitServicer,models.Facebook{}, google)
 		CreateTokenFromGoogle(c, google)
 	}
 	return c.String(http.StatusUnauthorized,"")
@@ -163,7 +165,9 @@ func handleFacebookCallback(c echo.Context) error {
 	if err == nil {
 		facebook := models.Facebook{}
 		json.Unmarshal(contents, &facebook)
-		services.CreateNewUserProfile(facebook, models.Google{})
+		var reitServicer services.ReitServicer
+		reitServicer = services.Reit_Service{}
+		services.CreateNewUserProfileProcess(reitServicer,facebook, models.Google{})
 		CreateTokenFromFacebook(c, facebook)
 	}
 	return c.String(http.StatusUnauthorized,"")
@@ -240,7 +244,9 @@ func getProfileFacebook(token string,c echo.Context) error{
 	if err == nil {
 		facebook := models.Facebook{}
 		json.Unmarshal(contents, &facebook)
-		services.CreateNewUserProfile(facebook, models.Google{})
+		var reitServicer services.ReitServicer
+		reitServicer = services.Reit_Service{}
+		services.CreateNewUserProfileProcess(reitServicer,facebook, models.Google{})
 		CreateTokenFromFacebook(c, facebook)
 	}
 	return c.String(http.StatusUnauthorized, "")
@@ -254,7 +260,9 @@ func getProfileGoogle(token string,c echo.Context) error{
 	if err == nil {
 		google := models.Google{}
 		json.Unmarshal(contents, &google)
-		services.CreateNewUserProfile(models.Facebook{}, google)
+		var reitServicer services.ReitServicer
+		reitServicer = services.Reit_Service{}
+		services.CreateNewUserProfileProcess(reitServicer,models.Facebook{}, google)
 		CreateTokenFromGoogle(c, google)
 	}
 	return c.String(http.StatusUnauthorized, "")

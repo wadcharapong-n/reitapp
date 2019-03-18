@@ -3,8 +3,8 @@ package api
 import (
 	"../models"
 	"../services"
-	"../util"
 	"fmt"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
 	"net/http"
 )
@@ -16,6 +16,7 @@ type ReitController interface {
 	SaveFavoriteReit(c echo.Context) error
 	DeleteFavoriteReit(c echo.Context) error
 	GetUserProfile(c echo.Context) error
+	GetUserFromToken(c echo.Context) (string,string)
 }
 
 type Reit struct {
@@ -122,9 +123,19 @@ func (self Reit) DeleteFavoriteReit(c echo.Context) error {
 }
 
 func (self Reit) GetUserProfile(c echo.Context) error {
-	userID,site := util.GetUserFromToken(c);
+	var reitController ReitController
+	reitController = Reit{}
+	userID,site := reitController.GetUserFromToken(c);
 	self.reitServicer = services.Reit_Service{}
 	profile := services.GetUserProfileByCriteriaProcess(self.reitServicer,userID, site)
 	return c.JSON(http.StatusOK, profile)
+}
+
+func (self Reit) GetUserFromToken(c echo.Context) (string,string)  {
+	user := c.Get("user").(*jwt.Token)
+	claims := user.Claims.(*models.JWTCustomClaims)
+	userID := claims.ID
+	site := claims.Site
+	return userID,site
 }
 

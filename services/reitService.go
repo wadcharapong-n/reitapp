@@ -16,6 +16,7 @@ type ReitServicer interface {
 	GetReitFavoriteByUserIDJoin(userId string) []*models.FavoriteInfo
 	GetUserProfileByCriteria(userId string, site string ) models.UserProfile
 	SaveUserProfile(profile *models.UserProfile) string
+	CreateNewUserProfile(facebook models.Facebook,google models.Google ) string
 }
 
 type Reit_Service struct {
@@ -52,6 +53,10 @@ func DeleteReitFavoriteProcess(reitService ReitServicer,userId string, symbol st
 
 func SaveUserProfileProcess(reitService ReitServicer,profile *models.UserProfile) string {
 	return reitService.SaveUserProfile(profile);
+}
+
+func CreateNewUserProfileProcess(reitService ReitServicer,facebook models.Facebook,google models.Google ) string {
+	return reitService.CreateNewUserProfile(facebook,google)
 }
 
 func (self Reit_Service) GetReitAll() ([]*models.ReitItem, error) {
@@ -162,7 +167,7 @@ func (self Reit_Service) GetReitFavoriteByUserIDJoin(userId string) []*models.Fa
 	return self.reitFavorite
 }
 
-func CreateNewUserProfile(facebook models.Facebook,google models.Google ) string {
+func (self Reit_Service) CreateNewUserProfile(facebook models.Facebook,google models.Google ) string {
 	var reitServicer ReitServicer
 	reitServicer = Reit_Service{}
 	var message string

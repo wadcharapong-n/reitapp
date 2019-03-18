@@ -21,6 +21,10 @@ type Reit struct {
 	err error
 }
 
+func (self Reit) GetUserFromToken(c echo.Context) (string, string) {
+	panic("implement me")
+}
+
 func (self Reit) GetUserProfile(c echo.Context) error {
 	token := c.Request().Header.Get("Authorization");
 	if token == "Bearer token" {
