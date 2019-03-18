@@ -21,6 +21,16 @@ type Reit struct {
 	err error
 }
 
+func (self Reit) GetUserProfile(c echo.Context) error {
+	token := c.Request().Header.Get("Authorization");
+	if token == "Bearer token" {
+		user := models.UserProfile{"1", "testUsername", "TestFullName", "Test@test.com", "testURL", "testSite"}
+		return c.JSON(http.StatusOK, user)
+	}
+	return c.JSON(http.StatusNoContent,"Not Found User")
+
+}
+
 func (self Reit) GetReitAll(c echo.Context) error {
 	item := models.ReitItem{"1",
 		"ทรัสต์เพื่อการลงทุนในสิทธิการเช่าอสังหาริมทรัพย์โกลเด้นเวนเจอร์",
@@ -163,7 +173,6 @@ func TestGetReitBySymbol(t *testing.T)  {
 	c.SetParamValues("GVREIT")
 	userJSON := `{"ID":"1","TrustNameTh":"ทรัสต์เพื่อการลงทุนในสิทธิการเช่าอสังหาริมทรัพย์โกลเด้นเวนเจอร์","TrustNameEn":"Golden Ventures Leasehold Real Estate Investment Trust","Symbol":"GVREIT","Trustee":"บริษัทหลักทรัพย์จัดการกองทุน กสิกรไทย จำกัด","Address":"","InvestmentAmount":"8,046,150,000 บาท","EstablishmentDate":"","RegistrationDate":"","ReitManager":"บริษัท ยูนิเวนเจอร์ รีท แมเนจเม้นท์ จำกัด","ParValue":"1","CeilingValue":"1","FloorValue":"1","PeValue":"1","ParNAV":"1","Policy":"1","PriceOfDay":"1","MaxPriceOfDay":"1","MinPriceOfDay":"1","NickName":"xx"}
 `
-
 	var methodTest api.ReitController
 	methodTest = Reit{}
 	// Assertions
@@ -213,5 +222,47 @@ func TestSaveFavoriteReit(t *testing.T)  {
 	// Assertions
 	if assert.NoError(t, methodTest.SaveFavoriteReit(c)) {
 		assert.Equal(t, http.StatusOK, rec.Code)
+	}
+}
+
+func TestGetUserProfile(t *testing.T)  {
+	// Setup
+	e := route.Init()
+	f := make(url.Values)
+	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(f.Encode()))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationForm)
+	req.Header.Add("Authorization","Bearer token")
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/api/profile")
+	userJSON := `{"UserID":"1","UserName":"testUsername","FullName":"TestFullName","Email":"Test@test.com","Image":"testURL","Site":"testSite"}
+`
+	var methodTest api.ReitController
+	methodTest = Reit{}
+	// Assertions
+	if assert.NoError(t, methodTest.GetUserProfile(c)) {
+		assert.Equal(t, http.StatusOK, rec.Code)
+		assert.Equal(t, userJSON, rec.Body.String())
+	}
+}
+
+func TestGetUserProfileNotFound(t *testing.T)  {
+	// Setup
+	e := route.Init()
+	f := make(url.Values)
+	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(f.Encode()))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationForm)
+	req.Header.Add("Authorization","Bearer")
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/api/profile")
+	userJSON := `"Not Found User"
+`
+	var methodTest api.ReitController
+	methodTest = Reit{}
+	// Assertions
+	if assert.NoError(t, methodTest.GetUserProfile(c)) {
+		assert.Equal(t, http.StatusNoContent, rec.Code)
+		assert.Equal(t, userJSON, rec.Body.String())
 	}
 }

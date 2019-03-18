@@ -15,6 +15,7 @@ type ReitController interface {
 	GetFavoriteReitAll(c echo.Context) error
 	SaveFavoriteReit(c echo.Context) error
 	DeleteFavoriteReit(c echo.Context) error
+	GetUserProfile(c echo.Context) error
 }
 
 type Reit struct {
@@ -54,6 +55,12 @@ func SaveFavoriteReitProcess(c echo.Context) error {
 	var reitController ReitController
 	reitController = Reit {}
 	return reitController.SaveFavoriteReit(c)
+}
+
+func GetUserProfileProcess(c echo.Context) error {
+	var reitController ReitController
+	reitController = Reit {}
+	return reitController.GetUserProfile(c)
 }
 
 // Handler
@@ -114,7 +121,7 @@ func (self Reit) DeleteFavoriteReit(c echo.Context) error {
 	return c.String(http.StatusOK, "success")
 }
 
-func GetUserProfile(c echo.Context) error {
+func (self Reit) GetUserProfile(c echo.Context) error {
 	userID,site := util.GetUserFromToken(c);
 	profile := services.GetUserProfileByCriteria(userID, site)
 	return c.JSON(http.StatusOK, profile)

@@ -70,10 +70,10 @@ func Init() *echo.Echo {
 	// API group
 	r := e.Group("/api")
 	//Configure middleware with the custom claims type
-	// config := middleware.JWTConfig{
-	// 	Claims:     &models.JWTCustomClaims{},
-	// 	SigningKey: []byte("secret"),
-	// }
+	//config := middleware.JWTConfig{
+	//Claims:     &models.JWTCustomClaims{},
+	//SigningKey: []byte("secret"),
+	//}
 	//r.Use(middleware.JWTWithConfig(config))
 
 	// Routes
@@ -82,7 +82,7 @@ func Init() *echo.Echo {
 	r.POST("/reitFavorite", api.SaveFavoriteReitProcess)
 	r.DELETE("/reitFavorite", api.DeleteFavoriteReitProcess)
 	r.GET("/reit/:symbol", api.GetReitBySymbolProcess)
-	r.GET("/profile", api.GetUserProfile)
+	r.GET("/profile", api.GetUserProfileProcess)
 
 	return e
 }
@@ -258,4 +258,5 @@ func getProfileGoogle(token string,c echo.Context) error{
 		CreateTokenFromGoogle(c, google)
 	}
 	return c.String(http.StatusUnauthorized, "")
+
 }
