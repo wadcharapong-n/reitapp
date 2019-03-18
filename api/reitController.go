@@ -90,7 +90,10 @@ func (self Reit) GetReitBySymbol(c echo.Context) error {
 
 func (self Reit) GetFavoriteReitAll(c echo.Context) error {
 	fmt.Println("start : GetFavoriteReitAll")
-	userID := c.Param("id")
+	//userID := c.Param("id")
+	var reitController ReitController
+	reitController = Reit{}
+	userID,_ := reitController.GetUserFromToken(c);
 	self.reitServicer = services.Reit_Service{}
 	self.reitFavorite = services.GetReitFavoriteByUserIDJoinProcess(self.reitServicer,userID)
 	return c.JSON(http.StatusOK, self.reitFavorite)
@@ -99,7 +102,10 @@ func (self Reit) GetFavoriteReitAll(c echo.Context) error {
 func (self Reit) SaveFavoriteReit(c echo.Context) error {
 	// Get name and email
 	fmt.Println("start : SaveFavoriteReit")
-	userID := c.FormValue("userId")
+	//userID := c.FormValue("userId")
+	var reitController ReitController
+	reitController = Reit{}
+	userID,_ := reitController.GetUserFromToken(c);
 	ticker := c.FormValue("Ticker")
 	self.reitServicer = services.Reit_Service{}
 	self.err = services.SaveReitFavoriteProcess(self.reitServicer, userID, ticker)
@@ -112,7 +118,10 @@ func (self Reit) SaveFavoriteReit(c echo.Context) error {
 func (self Reit) DeleteFavoriteReit(c echo.Context) error {
 	// Get name and email
 	fmt.Println("start : DeleteFavoriteReit")
-	userID := c.FormValue("userId")
+	//userID := c.FormValue("userId")
+	var reitController ReitController
+	reitController = Reit{}
+	userID,_ := reitController.GetUserFromToken(c);
 	ticker := c.FormValue("Ticker")
 	self.reitServicer = services.Reit_Service{}
 	self.err = services.DeleteReitFavoriteProcess(self.reitServicer , userID, ticker)

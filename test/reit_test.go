@@ -113,7 +113,12 @@ func (Reit) GetFavoriteReitAll(c echo.Context) error {
 }
 
 func (Reit) DeleteFavoriteReit(c echo.Context) error {
-	userID := c.FormValue("userId")
+	token := c.Request().Header.Get("Authorization");
+	var userID string
+	if token == "Bearer token" {
+		userID = "1"
+	}
+	//userID := c.FormValue("userId")
 	ticker := c.FormValue("Ticker")
 	if userID == "1" && ticker == "GVREIT" {
 		return c.String(http.StatusOK, "success")
@@ -123,7 +128,12 @@ func (Reit) DeleteFavoriteReit(c echo.Context) error {
 }
 
 func (Reit) SaveFavoriteReit(c echo.Context) error {
-	userID := c.FormValue("userId")
+	token := c.Request().Header.Get("Authorization");
+	var userID string
+	if token == "Bearer token" {
+		userID = "1"
+	}
+	//userID := c.FormValue("userId")
 	ticker := c.FormValue("Ticker")
 	if userID == "1" && ticker == "GVREIT" {
 		return c.String(http.StatusOK, "success")
@@ -190,11 +200,12 @@ func TestDeleteFavoriteReit(t *testing.T)  {
 	// Setup
 	e := route.Init()
 	f := make(url.Values)
-	f.Set("userId", "1")
+	//f.Set("userId", "1")
 	f.Set("Ticker", "GVREIT")
 	req := httptest.NewRequest(http.MethodDelete, "/", strings.NewReader(f.Encode()))
 	req.Form = f
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationForm)
+	req.Header.Add("Authorization","Bearer token")
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 	c.SetPath("/api/reitFavorite")
@@ -212,10 +223,11 @@ func TestSaveFavoriteReit(t *testing.T)  {
 	// Setup
 	e := route.Init()
 	f := make(url.Values)
-	f.Set("userId", "1")
+	//f.Set("userId", "1")
 	f.Set("Ticker", "GVREIT")
 	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(f.Encode()))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationForm)
+	req.Header.Add("Authorization","Bearer token")
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 	c.SetPath("/api/reitFavorite")

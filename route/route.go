@@ -78,7 +78,7 @@ func Init() *echo.Echo {
 
 	// Routes
 	r.GET("/reit", api.GetReitAllProcess)
-	r.GET("/reitFavorite/:id", api.GetFavoriteReitAllProcess)
+	r.GET("/reitFavorite/", api.GetFavoriteReitAllProcess)
 	r.POST("/reitFavorite", api.SaveFavoriteReitProcess)
 	r.DELETE("/reitFavorite", api.DeleteFavoriteReitProcess)
 	r.GET("/reit/:symbol", api.GetReitBySymbolProcess)
