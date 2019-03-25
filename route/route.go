@@ -84,6 +84,8 @@ func Init() *echo.Echo {
 	r.GET("/reit/:symbol", api.GetReitBySymbolProcess)
 	r.GET("/profile", api.GetUserProfileProcess)
 
+	r.GET("/search", api.TestElasticSearch)
+
 	return e
 }
 

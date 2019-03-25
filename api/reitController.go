@@ -148,3 +148,11 @@ func (self Reit) GetUserFromToken(c echo.Context) (string,string)  {
 	return userID,site
 }
 
+func TestElasticSearch(c echo.Context) error {
+
+	results := services.SearchElastic(c)
+
+	return c.JSON(http.StatusOK, results)
+
+}
+
