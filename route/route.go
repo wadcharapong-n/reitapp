@@ -83,6 +83,7 @@ func Init() *echo.Echo {
 	r.DELETE("/reitFavorite", api.DeleteFavoriteReitProcess)
 	r.GET("/reit/:symbol", api.GetReitBySymbolProcess)
 	r.GET("/profile", api.GetUserProfileProcess)
+	r.GET("/refreshToken",refreshToken)
 
 	return e
 }
@@ -185,15 +186,27 @@ func CreateTokenFromFacebook(c echo.Context, facebook models.Facebook) error {
 		},
 	}
 
+	claimsRefresh := &models.JWTCustomClaims{
+		facebook.ID,
+		facebook.Name,
+		"facebook",
+		jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(time.Hour * 24).Unix(),
+		},
+	}
+
 	// Create token
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	refreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claimsRefresh)
 	// Generate encoded token and send it as response.
 	t, err := token.SignedString([]byte("secret"))
+	r, err := refreshToken.SignedString([]byte("secret"))
 	if err != nil {
 		return err
 	}
 	return c.JSON(http.StatusOK, map[string]string{
 		"token": t,
+		"refreshToken" : r,
 	})
 }
 
@@ -207,15 +220,26 @@ func CreateTokenFromGoogle(c echo.Context, google models.Google) error {
 			ExpiresAt: time.Now().Add(time.Hour * 1).Unix(),
 		},
 	}
+	claimsRefresh := &models.JWTCustomClaims{
+		google.ID,
+		google.Name,
+		"google",
+		jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(time.Hour * 24).Unix(),
+		},
+	}
 	// Create token
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	refreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claimsRefresh)
 	// Generate encoded token and send it as response.
 	t, err := token.SignedString([]byte("secret"))
+	r, err := refreshToken.SignedString([]byte("secret"))
 	if err != nil {
 		return err
 	}
 	return c.JSON(http.StatusOK, map[string]string{
 		"token": t,
+		"refreshToken" : r,
 	})
 }
 
@@ -267,4 +291,34 @@ func getProfileGoogle(token string,c echo.Context) error{
 	}
 	return c.String(http.StatusUnauthorized, "")
 
+}
+
+func refreshToken(c echo.Context)  error{
+	user := c.Get("user").(*jwt.Token)
+	claims := user.Claims.(*models.JWTCustomClaims)
+	userID := claims.ID
+	site := claims.Site
+	name := claims.Name
+
+	// Set custom claims
+	newClaims := &models.JWTCustomClaims{
+		userID,
+		name,
+		site,
+		jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(time.Hour * 1).Unix(),
+		},
+	}
+
+	// Create token
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, newClaims)
+
+	// Generate encoded token and send it as response.
+	t, err := token.SignedString([]byte("secret"))
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, map[string]string{
+		"token": t,
+	})
 }
