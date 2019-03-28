@@ -85,6 +85,8 @@ func Init() *echo.Echo {
 	r.GET("/profile", api.GetUserProfileProcess)
 	r.GET("/refreshToken",refreshToken)
 
+	r.GET("/search", api.TestElasticSearch)
+
 	return e
 }
 

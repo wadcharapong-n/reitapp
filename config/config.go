@@ -12,3 +12,6 @@ var ClientID_Facebook = "385086385375815"
 var ClientSecret_Facebook = "baa3dce5c60b202469c4387f0b588766"
 var Scopes_Facebook = []string{"public_profile", "email"}
 var URL_access_token_Facebook = "https://graph.facebook.com/me?access_token="
+
+//elasticsearch
+var ElasticIndexName = ""
