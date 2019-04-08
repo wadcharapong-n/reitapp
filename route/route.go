@@ -70,11 +70,11 @@ func Init() *echo.Echo {
 	// API group
 	r := e.Group("/api")
 	//Configure middleware with the custom claims type
-	config := middleware.JWTConfig{
-		Claims:     &models.JWTCustomClaims{},
-		SigningKey: []byte("secret"),
-	}
-	r.Use(middleware.JWTWithConfig(config))
+	//config := middleware.JWTConfig{
+	//	Claims:     &models.JWTCustomClaims{},
+	//	SigningKey: []byte("secret"),
+	//}
+	//r.Use(middleware.JWTWithConfig(config))
 
 	// Routes
 	r.GET("/reit", api.GetReitAllProcess)
@@ -86,6 +86,7 @@ func Init() *echo.Echo {
 	r.GET("/refreshToken",refreshToken)
 
 	r.GET("/search", api.TestElasticSearch)
+	r.GET("/syncElastic", api.SynData)
 
 	return e
 }

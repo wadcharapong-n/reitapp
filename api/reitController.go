@@ -149,10 +149,22 @@ func (self Reit) GetUserFromToken(c echo.Context) (string,string)  {
 }
 
 func TestElasticSearch(c echo.Context) error {
-
-	results := services.SearchElastic(c)
+	q := c.QueryParam("query")
+	results := services.SearchElastic(q)
 
 	return c.JSON(http.StatusOK, results)
 
+}
+
+func  SynData(c echo.Context) error {
+	reitServicer := services.Reit_Service{}
+	reitItems ,err := services.GetReitAllProcess(reitServicer)
+	if err != nil {
+		return c.String(http.StatusBadRequest, "fail")
+	}
+	for _, reit := range reitItems {
+		services.AddDataElastic(reit)
+	}
+	return c.String(http.StatusOK, "success")
 }
 

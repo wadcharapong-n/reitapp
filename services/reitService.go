@@ -2,16 +2,14 @@ package services
 
 import (
 	"../app"
-	"../config"
 	"../models"
+	"../config"
+	"encoding/json"
 	"fmt"
-	"github.com/labstack/echo"
+	"github.com/olivere/elastic"
+	"golang.org/x/net/context"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
-	"gopkg.in/olivere/elastic.v6"
-	"log"
-	"net/http"
-	"strconv"
 )
 
 type ReitServicer interface {
@@ -70,7 +68,7 @@ func (self Reit_Service) GetReitAll() ([]*models.ReitItem, error) {
 	defer session.Close()
 	// Optional. Switch the session to a monotonic behavior.
 	session.SetMode(mgo.Monotonic, true)
-	document := session.DB("REIT_DEV").C("REIT")
+	document := session.DB(config.Mongo_DB).C("REIT")
 	self.err = document.Find(nil).All(&self.reitItems)
 	return self.reitItems, self.err
 }
@@ -81,7 +79,7 @@ func (self Reit_Service) GetReitBySymbol(symbol string) (models.ReitItem, error)
 	defer session.Close()
 	// Optional. Switch the session to a monotonic behavior.
 	session.SetMode(mgo.Monotonic, true)
-	document := session.DB("REIT_DEV").C("REIT")
+	document := session.DB(config.Mongo_DB).C("REIT")
 	self.err = document.Find(bson.M{"symbol": symbol}).One(&self.reitItem)
 	return self.reitItem, self.err
 }
@@ -94,7 +92,7 @@ func (self Reit_Service) SaveReitFavorite(userId string, symbol string) error {
 	defer session.Close()
 	// Optional. Switch the session to a monotonic behavior.
 	session.SetMode(mgo.Monotonic, true)
-	document := session.DB("REIT_DEV").C("Favorite")
+	document := session.DB(config.Mongo_DB).C("Favorite")
 	favorite := models.Favorite{UserId: userId, Symbol: symbol}
 	self.err = document.Insert(&favorite)
 	if self.err != nil {
@@ -112,7 +110,7 @@ func (self Reit_Service) DeleteReitFavorite(userId string, ticker string) error{
 	defer session.Close()
 	// Optional. Switch the session to a monotonic behavior.
 	session.SetMode(mgo.Monotonic, true)
-	document := session.DB("REIT_DEV").C("Favorite")
+	document := session.DB(config.Mongo_DB).C("Favorite")
 	favorite := models.Favorite{UserId: userId, Symbol: ticker}
 	self.err = document.Remove(&favorite)
 	if self.err != nil {
@@ -149,7 +147,7 @@ func (self Reit_Service) GetReitFavoriteByUserIDJoin(userId string) []*models.Fa
 	defer session.Close()
 	// Optional. Switch the session to a monotonic behavior.
 	session.SetMode(mgo.Monotonic, true)
-	document := session.DB("REIT_DEV").C("Favorite")
+	document := session.DB(config.Mongo_DB).C("Favorite")
 
 	query := []bson.M{{
 		"$lookup": bson.M{ // lookup the documents table here
@@ -209,7 +207,7 @@ func (self Reit_Service) SaveUserProfile(profile *models.UserProfile) string {
 	defer session.Close()
 	// Optional. Switch the session to a monotonic behavior.
 	session.SetMode(mgo.Monotonic, true)
-	document := session.DB("REIT_DEV").C("UserProfile")
+	document := session.DB(config.Mongo_DB).C("UserProfile")
 	err := document.Insert(&profile)
 	if err != nil {
 		return "fail"
@@ -223,7 +221,7 @@ func (self Reit_Service) GetUserProfileByCriteria(userId string, site string ) m
 	defer session.Close()
 	// Optional. Switch the session to a monotonic behavior.
 	session.SetMode(mgo.Monotonic, true)
-	document := session.DB("REIT_DEV").C("UserProfile")
+	document := session.DB(config.Mongo_DB).C("UserProfile")
 	err := document.Find(bson.M{"userID": userId,"site": site}).One(&self.userProfile)
 	if err != nil {
 		// TODO: Do something about the error
@@ -234,57 +232,92 @@ func (self Reit_Service) GetUserProfileByCriteria(userId string, site string ) m
 	return self.userProfile
 }
 
-func SearchElastic(e echo.Context) error {
+func SearchElastic(query string) []models.ReitItem {
+	ctx := context.Background()
 	client := app.GetElasticSearch()
-	esversion, err := client.ElasticsearchVersion("http://127.0.0.1:9200")
+
+	// Search with a term query
+	termQuery := elastic.NewMultiMatchQuery(query,"NickName","Symbol","ReitManager")
+	//termQuery := elastic.NewTermQuery("nickName",query)
+	searchResult, err := client.Search().
+		Index(config.ElasticIndexName).   // search in index "reitapp"
+		Query(termQuery).   // specify the query
+		//Sort("user", true). // sort by "user" field, ascending
+		From(0).Size(10).   // take documents 0-9
+		Pretty(true).       // pretty print request and response JSON
+		Do(ctx)             // execute
 	if err != nil {
 		// Handle error
 		panic(err)
 	}
-	fmt.Printf("Elasticsearch version %s\n", esversion)
 
-	// Parse request
-	query := e.QueryParam("query")
-	if query == "" {
-		e.JSON(http.StatusBadRequest, "Query not specified")
-		return nil
+	// TotalHits is another convenience function that works even when something goes wrong.
+	fmt.Printf("Found a total of %d reits\n", searchResult.TotalHits())
+
+	// Here's how you iterate through results with full control over each step.
+	if searchResult.Hits.TotalHits > 0 {
+		// Iterate through results
+		var reits []models.ReitItem
+		for _, hit := range searchResult.Hits.Hits {
+			// hit.Index contains the name of the index
+
+			// Deserialize hit.Source into a Tweet (could also be just a map[string]interface{}).
+			var t models.ReitItem
+			err := json.Unmarshal(*hit.Source, &t)
+			if err != nil {
+				// Deserialization failed
+			}
+			reits = append(reits,t)
+			// Work with tweet
+			fmt.Printf("reit by %s: %s\n", t.Symbol, t.NickName)
+
+		}
+		return reits
+	} else {
+		// No hits
+		fmt.Print("Found no reit\n")
 	}
-	skip := 0
-	take := 10
-	if i, err := strconv.Atoi( e.QueryParam("skip")); err == nil {
-		skip = i
-	}
-	if i, err := strconv.Atoi( e.QueryParam("take")); err == nil {
-		take = i
-	}
-	// Perform search
-	esQuery := elastic.NewMultiMatchQuery(query, "title", "content").
-		Fuzziness("2").
-		MinimumShouldMatch("2")
-	result, err := client.Search().
+
+	return  nil
+}
+
+func AddDataElastic(reit *models.ReitItem) error {
+	ctx := context.Background()
+	client := app.GetElasticSearch()
+
+	CheckIndex()
+	//Search with a term query// Index a tweet (using JSON serialization)
+	_, err := client.Index().
 		Index(config.ElasticIndexName).
-		Query(esQuery).
-		From(skip).Size(take).
-		Do(e.Request().Context())
+		Type("reit").
+		//Id("1").
+		BodyJson(&reit).
+		Do(ctx)
 	if err != nil {
-		log.Println(err)
-		e.JSON(http.StatusInternalServerError, "Something went wrong")
-		return nil
+		// Handle error
+		panic(err)
 	}
-	//prepare response from elasticsearch
-	//res := SearchResponse{
-	//	Time: fmt.Sprintf("%d", result.TookInMillis),
-	//	Hits: fmt.Sprintf("%d", result.Hits.TotalHits),
-	//}
-	//// Transform search results before returning them
-	//docs := make([]DocumentResponse, 0)
-	//for _, hit := range result.Hits.Hits {
-	//	var doc DocumentResponse
-	//	json.Unmarshal(*hit.Source, &doc)
-	//	docs = append(docs, doc)
-	//}
-	//res.Documents = docs
-	e.JSON(http.StatusOK, result)
 
 	return nil
+}
+
+func CheckIndex(){
+	ctx := context.Background()
+	client := app.GetElasticSearch()
+	exists, err := client.IndexExists(config.ElasticIndexName).Do(ctx)
+	if err != nil {
+		// Handle error
+		panic(err)
+	}
+	if !exists {
+		// Create a new index.
+		createIndex, err := client.CreateIndex(config.ElasticIndexName).BodyString(models.Mapping).Do(ctx)
+		if err != nil {
+			// Handle error
+			panic(err)
+		}
+		if !createIndex.Acknowledged {
+			// Not acknowledged
+		}
+	}
 }

@@ -73,3 +73,71 @@ type Google struct {
 	Gender string `bson:"gender"`
 	Locale string `bson:"locale"`
 }
+
+const Mapping  =`
+    {
+	"mappings" : {
+      "reit" : {
+        "properties" : {
+          "Address" : {
+            "type" : "text",
+			"analyzer": "standard"
+          },
+          "ID" : {
+            "type" : "text",
+            "fields" : {
+              "keyword" : {
+                "type" : "keyword",
+                "ignore_above" : 256
+              }
+            }
+          },
+          "InvestmentAmount" : {
+            "type" : "text",
+			"analyzer": "standard",
+            "fields" : {
+              "keyword" : {
+                "type" : "keyword",
+                "ignore_above" : 256
+              }
+            }
+          },
+          "NickName" : {
+            "type" : "text",
+			"analyzer": "standard",
+            "fields" : {
+              "keyword" : {
+                "type" : "keyword",
+                "ignore_above" : 256
+              }
+            }
+          },
+          "ReitManager" : {
+            "type" : "text",
+            "fields" : {
+              "keyword" : {
+                "type" : "keyword",
+                "ignore_above" : 256
+              }
+            }
+          },
+          "Symbol" : {
+            "type" : "text",
+            "analyzer": "standard"
+          },
+          "TrustNameEn" : {
+            "type" : "text",
+			"analyzer": "standard"
+          },
+          "TrustNameTh" : {
+            "type" : "text",
+            "analyzer": "standard"
+          },
+          "Trustee" : {
+            "type" : "text",
+            "analyzer": "standard"
+          }
+        }
+      }
+    }
+	}`
