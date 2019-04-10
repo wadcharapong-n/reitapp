@@ -56,22 +56,22 @@ type UserProfile struct {
 }
 
 type Facebook struct {
-	ID     string `bson:"id"`
-	Name string `bson:"name"`
-	Email string `bson:"email"`
+	ID     	string `bson:"id"`
+	Name 	string `bson:"name"`
+	Email	string `bson:"email"`
 }
 
 type Google struct {
-	ID     string `bson:"id"`
-	Name string `bson:"name"`
-	Email string `bson:"email"`
-	Verified_Email bool `bson:"verified_email"`
-	Given_Name string `bson:"given_name"`
-	Family_Name string `bson:"family_name"`
-	Link string `bson:"link"`
-	Picture string `bson:"picture"`
-	Gender string `bson:"gender"`
-	Locale string `bson:"locale"`
+	ID     				string `bson:"id"`
+	Name 				string `bson:"name"`
+	Email 				string `bson:"email"`
+	Verified_Email 		bool 	`bson:"verified_email"`
+	Given_Name 			string `bson:"given_name"`
+	Family_Name 		string `bson:"family_name"`
+	Link 				string `bson:"link"`
+	Picture 			string `bson:"picture"`
+	Gender 				string `bson:"gender"`
+	Locale 				string `bson:"locale"`
 }
 
 const Mapping  =`

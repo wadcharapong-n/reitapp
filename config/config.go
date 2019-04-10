@@ -14,7 +14,7 @@ var Scopes_Facebook = []string{"public_profile", "email"}
 var URL_access_token_Facebook = "https://graph.facebook.com/me?access_token="
 
 //elasticsearch
-var ElasticIndexName = "reaitapp"
+var ElasticIndexName = "reitapp"
 var Elastic_URL = "http://127.0.0.1:9200"
 
 var Mongo_DB = "REIT_DEV"

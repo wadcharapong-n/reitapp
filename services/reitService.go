@@ -31,38 +31,6 @@ type Reit_Service struct {
 	err error
 }
 
-func GetReitAllProcess(reitService ReitServicer) ([]*models.ReitItem, error) {
-	return reitService.GetReitAll()
-}
-
-func GetReitBySymbolProcess(reitService ReitServicer,symbol string) (models.ReitItem, error) {
-	return reitService.GetReitBySymbol(symbol)
-}
-
-func GetReitFavoriteByUserIDJoinProcess(reitService ReitServicer,userId string) []*models.FavoriteInfo {
-	return reitService.GetReitFavoriteByUserIDJoin(userId)
-}
-
-func SaveReitFavoriteProcess(reitService ReitServicer,userId string, symbol string) error {
-	return reitService.SaveReitFavorite(userId,symbol)
-}
-
-func GetUserProfileByCriteriaProcess(reitService ReitServicer,userId string, site string) models.UserProfile {
-	return reitService.GetUserProfileByCriteria(userId,site)
-}
-
-func DeleteReitFavoriteProcess(reitService ReitServicer,userId string, symbol string) error{
-	return reitService.DeleteReitFavorite(userId,symbol)
-}
-
-func SaveUserProfileProcess(reitService ReitServicer,profile *models.UserProfile) string {
-	return reitService.SaveUserProfile(profile);
-}
-
-func CreateNewUserProfileProcess(reitService ReitServicer,facebook models.Facebook,google models.Google ) string {
-	return reitService.CreateNewUserProfile(facebook,google)
-}
-
 func (self Reit_Service) GetReitAll() ([]*models.ReitItem, error) {
 	session := *app.GetDocumentMongo()
 	defer session.Close()

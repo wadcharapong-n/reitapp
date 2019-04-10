@@ -20,55 +20,17 @@ type ReitController interface {
 }
 
 type Reit struct {
-	reitServicer services.ReitServicer
+	reitServicer services.Reit_Service
 	reitItems []*models.ReitItem
 	reitItem models.ReitItem
 	reitFavorite []*models.FavoriteInfo
 	err error
 }
 
-
-func DeleteFavoriteReitProcess(c echo.Context) error {
-	var reitController ReitController
-	reitController = Reit {}
-	return reitController.DeleteFavoriteReit(c)
-}
-
-func GetReitAllProcess(c echo.Context) error {
-	var reitController ReitController
-	reitController = Reit {}
-	return reitController.GetReitAll(c)
-}
-
-func GetReitBySymbolProcess(c echo.Context) error {
-	var reitController ReitController
-	reitController = Reit {}
-	return reitController.GetReitBySymbol(c)
-}
-
-func GetFavoriteReitAllProcess(c echo.Context) error {
-	var reitController ReitController
-	reitController = Reit {}
-	return reitController.GetFavoriteReitAll(c)
-}
-
-func SaveFavoriteReitProcess(c echo.Context) error {
-	var reitController ReitController
-	reitController = Reit {}
-	return reitController.SaveFavoriteReit(c)
-}
-
-func GetUserProfileProcess(c echo.Context) error {
-	var reitController ReitController
-	reitController = Reit {}
-	return reitController.GetUserProfile(c)
-}
-
 // Handler
 func (self Reit) GetReitAll(c echo.Context) error {
 
-	self.reitServicer = services.Reit_Service{}
-	self.reitItems ,self.err = services.GetReitAllProcess(self.reitServicer)
+	self.reitItems ,self.err = self.reitServicer.GetReitAll()
 	if self.err != nil {
 		return echo.NewHTTPError(http.StatusNotFound, "data not found")
 	}
@@ -77,8 +39,7 @@ func (self Reit) GetReitAll(c echo.Context) error {
 
 func (self Reit) GetReitBySymbol(c echo.Context) error {
 	symbol := c.Param("symbol")
-	self.reitServicer = services.Reit_Service{}
-	self.reitItem, self.err = services.GetReitBySymbolProcess(self.reitServicer,symbol)
+	self.reitItem, self.err = self.reitServicer.GetReitBySymbol(symbol)
 	if self.reitItem == (models.ReitItem{}) {
 		return echo.NewHTTPError(http.StatusNotFound, "data not found")
 	}
@@ -95,7 +56,7 @@ func (self Reit) GetFavoriteReitAll(c echo.Context) error {
 	reitController = Reit{}
 	userID,_ := reitController.GetUserFromToken(c);
 	self.reitServicer = services.Reit_Service{}
-	self.reitFavorite = services.GetReitFavoriteByUserIDJoinProcess(self.reitServicer,userID)
+	self.reitFavorite = self.reitServicer.GetReitFavoriteByUserIDJoin(userID)
 	return c.JSON(http.StatusOK, self.reitFavorite)
 }
 
@@ -107,8 +68,7 @@ func (self Reit) SaveFavoriteReit(c echo.Context) error {
 	reitController = Reit{}
 	userID,_ := reitController.GetUserFromToken(c);
 	ticker := c.FormValue("Ticker")
-	self.reitServicer = services.Reit_Service{}
-	self.err = services.SaveReitFavoriteProcess(self.reitServicer, userID, ticker)
+	self.err = self.reitServicer.SaveReitFavorite( userID, ticker)
 	if self.err != nil {
 		return c.String(http.StatusBadRequest, "fail")
 	}
@@ -123,8 +83,7 @@ func (self Reit) DeleteFavoriteReit(c echo.Context) error {
 	reitController = Reit{}
 	userID,_ := reitController.GetUserFromToken(c);
 	ticker := c.FormValue("Ticker")
-	self.reitServicer = services.Reit_Service{}
-	self.err = services.DeleteReitFavoriteProcess(self.reitServicer , userID, ticker)
+	self.err = self.reitServicer.DeleteReitFavorite(userID, ticker)
 	if self.err != nil {
 		return c.String(http.StatusBadRequest, "fail")
 	}
@@ -135,8 +94,7 @@ func (self Reit) GetUserProfile(c echo.Context) error {
 	var reitController ReitController
 	reitController = Reit{}
 	userID,site := reitController.GetUserFromToken(c);
-	self.reitServicer = services.Reit_Service{}
-	profile := services.GetUserProfileByCriteriaProcess(self.reitServicer,userID, site)
+	profile := self.reitServicer.GetUserProfileByCriteria(userID, site)
 	return c.JSON(http.StatusOK, profile)
 }
 
@@ -158,7 +116,7 @@ func TestElasticSearch(c echo.Context) error {
 
 func  SynData(c echo.Context) error {
 	reitServicer := services.Reit_Service{}
-	reitItems ,err := services.GetReitAllProcess(reitServicer)
+	reitItems ,err := reitServicer.GetReitAll()
 	if err != nil {
 		return c.String(http.StatusBadRequest, "fail")
 	}
