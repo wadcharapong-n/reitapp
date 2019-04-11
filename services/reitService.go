@@ -14,30 +14,47 @@ import (
 
 type ReitServicer interface {
 	GetReitBySymbol(symbol string) (models.ReitItem, error)
-	GetReitAll() ([]*models.ReitItem, error)
+	GetReitAll() ([]models.ReitItem, error)
 	SaveReitFavorite(userId string, symbol string) error
 	DeleteReitFavorite(userId string, ticker string) error
 	GetReitFavoriteByUserIDJoin(userId string) []*models.FavoriteInfo
 	GetUserProfileByCriteria(userId string, site string ) models.UserProfile
 	SaveUserProfile(profile *models.UserProfile) string
 	CreateNewUserProfile(facebook models.Facebook,google models.Google ) string
+	SearchElastic(query string) []models.ReitItem
 }
 
 type Reit_Service struct {
-	reitItems []*models.ReitItem
+	reitItems []models.ReitItem
 	reitItem models.ReitItem
 	reitFavorite []*models.FavoriteInfo
 	userProfile models.UserProfile
 	err error
 }
 
-func (self Reit_Service) GetReitAll() ([]*models.ReitItem, error) {
+func (self Reit_Service) GetReitAll() ([]models.ReitItem, error) {
 	session := *app.GetDocumentMongo()
 	defer session.Close()
 	// Optional. Switch the session to a monotonic behavior.
 	session.SetMode(mgo.Monotonic, true)
 	document := session.DB(config.Mongo_DB).C("REIT")
-	self.err = document.Find(nil).All(&self.reitItems)
+	//self.err = document.Find(nil).All(&self.reitItems)
+	query := []bson.M{{
+		"$lookup": bson.M{ // lookup the documents table here
+			"from":         "MajorShareholders",
+			"localField":   "symbol",
+			"foreignField": "symbol",
+			"as":           "majorShareholders",
+		}}}
+
+	pipe := document.Pipe(query)
+	self.err = pipe.All(&self.reitItems)
+	if self.err != nil {
+		// TODO: Do something about the error
+		fmt.Printf("error : ", self.err)
+	} else {
+
+	}
 	return self.reitItems, self.err
 }
 
@@ -48,7 +65,20 @@ func (self Reit_Service) GetReitBySymbol(symbol string) (models.ReitItem, error)
 	// Optional. Switch the session to a monotonic behavior.
 	session.SetMode(mgo.Monotonic, true)
 	document := session.DB(config.Mongo_DB).C("REIT")
-	self.err = document.Find(bson.M{"symbol": symbol}).One(&self.reitItem)
+	//self.err = document.Find(bson.M{"symbol": symbol}).One(&self.reitItem)
+	query := []bson.M{{
+		"$lookup": bson.M{ // lookup the documents table here
+			"from":         "MajorShareholders",
+			"localField":   "symbol",
+			"foreignField": "symbol",
+			"as":           "majorShareholders",
+		}},
+		{"$match": bson.M{
+			"symbol": symbol,
+		}}}
+
+	pipe := document.Pipe(query)
+	self.err = pipe.One(&self.reitItem)
 	return self.reitItem, self.err
 }
 
@@ -200,7 +230,7 @@ func (self Reit_Service) GetUserProfileByCriteria(userId string, site string ) m
 	return self.userProfile
 }
 
-func SearchElastic(query string) []models.ReitItem {
+func (self Reit_Service) SearchElastic(query string) []models.ReitItem {
 	ctx := context.Background()
 	client := app.GetElasticSearch()
 
@@ -225,7 +255,6 @@ func SearchElastic(query string) []models.ReitItem {
 	// Here's how you iterate through results with full control over each step.
 	if searchResult.Hits.TotalHits > 0 {
 		// Iterate through results
-		var reits []models.ReitItem
 		for _, hit := range searchResult.Hits.Hits {
 			// hit.Index contains the name of the index
 
@@ -235,12 +264,12 @@ func SearchElastic(query string) []models.ReitItem {
 			if err != nil {
 				// Deserialization failed
 			}
-			reits = append(reits,t)
+			self.reitItems = append(self.reitItems,t)
 			// Work with tweet
 			fmt.Printf("reit by %s: %s\n", t.Symbol, t.NickName)
 
 		}
-		return reits
+		return self.reitItems
 	} else {
 		// No hits
 		fmt.Print("Found no reit\n")
@@ -249,7 +278,7 @@ func SearchElastic(query string) []models.ReitItem {
 	return  nil
 }
 
-func AddDataElastic(reit *models.ReitItem) error {
+func AddDataElastic(reit models.ReitItem) error {
 	ctx := context.Background()
 	client := app.GetElasticSearch()
 

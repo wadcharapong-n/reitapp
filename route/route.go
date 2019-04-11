@@ -57,7 +57,7 @@ func Init() *echo.Echo {
 	r.GET("/profile", reitController.GetUserProfile)
 	r.GET("/refreshToken",authController.RefreshToken)
 
-	r.GET("/search", api.TestElasticSearch)
+	r.GET("/search", reitController.Search)
 	r.GET("/syncElastic", api.SynData)
 
 	return e

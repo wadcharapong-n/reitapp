@@ -17,11 +17,12 @@ type ReitController interface {
 	DeleteFavoriteReit(c echo.Context) error
 	GetUserProfile(c echo.Context) error
 	GetUserFromToken(c echo.Context) (string,string)
+	Search(c echo.Context) error
 }
 
 type Reit struct {
 	reitServicer services.Reit_Service
-	reitItems []*models.ReitItem
+	reitItems []models.ReitItem
 	reitItem models.ReitItem
 	reitFavorite []*models.FavoriteInfo
 	err error
@@ -40,7 +41,7 @@ func (self Reit) GetReitAll(c echo.Context) error {
 func (self Reit) GetReitBySymbol(c echo.Context) error {
 	symbol := c.Param("symbol")
 	self.reitItem, self.err = self.reitServicer.GetReitBySymbol(symbol)
-	if self.reitItem == (models.ReitItem{}) {
+	if self.reitItem.ID == "" {
 		return echo.NewHTTPError(http.StatusNotFound, "data not found")
 	}
 	if self.err != nil {
@@ -106,10 +107,9 @@ func (self Reit) GetUserFromToken(c echo.Context) (string,string)  {
 	return userID,site
 }
 
-func TestElasticSearch(c echo.Context) error {
+func (self Reit) Search(c echo.Context) error {
 	q := c.QueryParam("query")
-	results := services.SearchElastic(q)
-
+	results := self.reitServicer.SearchElastic(q)
 	return c.JSON(http.StatusOK, results)
 
 }

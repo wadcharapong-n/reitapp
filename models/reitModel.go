@@ -23,6 +23,7 @@ type ReitItem struct {
 	MaxPriceOfDay     string `bson:"maxPriceOfDay"`
 	MinPriceOfDay     string `bson:"minPriceOfDay"`
 	NickName          string `bson:"nickName"`
+	MajorShareholders []MajorShareholders `bson:"majorShareholders"`
 }
 
 type Favorite struct {
@@ -36,6 +37,15 @@ type FavoriteInfo struct {
 	Symbol string `bson:"symbol"`
 	UserId string `bson:"userId"`
 	ReitItem []ReitItem `bson:"Reit"`
+}
+
+type MajorShareholders struct {
+	// ID     string `bson:"_id"`
+	Symbol 		string `bson:"symbol"`
+	NameTh      string `bson:"nameTh"`
+	NameEn      string `bson:"nameEn"`
+	Shares		string `bson:"shares"`
+	SharesPercent		string `bson:"sharesPercent"`
 }
 
 type JWTCustomClaims struct {
