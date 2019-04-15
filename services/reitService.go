@@ -235,8 +235,59 @@ func (self Reit_Service) SearchElastic(query string) []models.ReitItem {
 	client := app.GetElasticSearch()
 
 	// Search with a term query
-	termQuery := elastic.NewMultiMatchQuery(query,"NickName","Symbol","ReitManager")
+	termQuery := elastic.NewMultiMatchQuery(query,"nickName","symbol","reitManager").Type("phrase_prefix")
 	//termQuery := elastic.NewTermQuery("nickName",query)
+	searchResult, err := client.Search().
+		Index(config.ElasticIndexName).   // search in index "reitapp"
+		Query(termQuery).   // specify the query
+		//Sort("user", true). // sort by "user" field, ascending
+		From(0).Size(10).   // take documents 0-9
+		Pretty(true).       // pretty print request and response JSON
+		Do(ctx)             // execute
+	if err != nil {
+		// Handle error
+		panic(err)
+	}
+
+	// TotalHits is another convenience function that works even when something goes wrong.
+	fmt.Printf("Found a total of %d reits\n", searchResult.TotalHits())
+
+	// Here's how you iterate through results with full control over each step.
+	if searchResult.Hits.TotalHits > 0 {
+		// Iterate through results
+		for _, hit := range searchResult.Hits.Hits {
+			// hit.Index contains the name of the index
+
+			// Deserialize hit.Source into a Tweet (could also be just a map[string]interface{}).
+			var t models.ReitItem
+			err := json.Unmarshal(*hit.Source, &t)
+			if err != nil {
+				// Deserialization failed
+			}
+			self.reitItems = append(self.reitItems,t)
+			// Work with tweet
+			fmt.Printf("reit by %s: %s\n", t.Symbol, t.NickName)
+
+		}
+		return self.reitItems
+	} else {
+		// No hits
+		fmt.Print("Found no reit\n")
+	}
+
+	return  nil
+}
+
+func (self Reit_Service) SearchMapElastic(lat float64 ,lon float64) []models.ReitItem {
+	ctx := context.Background()
+	client := app.GetElasticSearch()
+
+	// Search with a term query
+	//termQuery := elastic.NewMultiMatchQuery(query,"NickName","Symbol","ReitManager")
+	termQuery := elastic.NewGeoDistanceQuery("location.coordinates")
+	termQuery.Distance("100m")
+	termQuery.Point(lat,lon)
+
 	searchResult, err := client.Search().
 		Index(config.ElasticIndexName).   // search in index "reitapp"
 		Query(termQuery).   // specify the query
