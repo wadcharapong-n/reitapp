@@ -4,9 +4,9 @@ import (
 	"../models"
 	"../services"
 	"fmt"
-	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
 	"net/http"
+	"strconv"
 )
 
 type ReitController interface {
@@ -18,18 +18,20 @@ type ReitController interface {
 	GetUserProfile(c echo.Context) error
 	GetUserFromToken(c echo.Context) (string,string)
 	Search(c echo.Context) error
+  	SynData(c echo.Context) error
 }
 
-type Reit struct {
+type Reit_Handler struct {
 	reitServicer services.Reit_Service
 	reitItems []models.ReitItem
 	reitItem models.ReitItem
 	reitFavorite []*models.FavoriteInfo
 	err error
+	authHandler Auth_Handler
 }
 
 // Handler
-func (self Reit) GetReitAll(c echo.Context) error {
+func (self Reit_Handler) GetReitAll(c echo.Context) error {
 
 	self.reitItems ,self.err = self.reitServicer.GetReitAll()
 	if self.err != nil {
@@ -38,7 +40,7 @@ func (self Reit) GetReitAll(c echo.Context) error {
 	return c.JSON(http.StatusOK, self.reitItems)
 }
 
-func (self Reit) GetReitBySymbol(c echo.Context) error {
+func (self Reit_Handler) GetReitBySymbol(c echo.Context) error {
 	symbol := c.Param("symbol")
 	self.reitItem, self.err = self.reitServicer.GetReitBySymbol(symbol)
 	if self.reitItem.ID == "" {
@@ -50,24 +52,21 @@ func (self Reit) GetReitBySymbol(c echo.Context) error {
 	return c.JSON(http.StatusOK, self.reitItem)
 }
 
-func (self Reit) GetFavoriteReitAll(c echo.Context) error {
+func (self Reit_Handler) GetFavoriteReitAll(c echo.Context) error {
 	fmt.Println("start : GetFavoriteReitAll")
 	//userID := c.Param("id")
-	var reitController ReitController
-	reitController = Reit{}
-	userID,_ := reitController.GetUserFromToken(c);
+
+	userID,_ := self.authHandler.GetUserFromToken(c);
 	self.reitServicer = services.Reit_Service{}
 	self.reitFavorite = self.reitServicer.GetReitFavoriteByUserIDJoin(userID)
 	return c.JSON(http.StatusOK, self.reitFavorite)
 }
 
-func (self Reit) SaveFavoriteReit(c echo.Context) error {
+func (self Reit_Handler) SaveFavoriteReit(c echo.Context) error {
 	// Get name and email
 	fmt.Println("start : SaveFavoriteReit")
 	//userID := c.FormValue("userId")
-	var reitController ReitController
-	reitController = Reit{}
-	userID,_ := reitController.GetUserFromToken(c);
+	userID,_ := self.authHandler.GetUserFromToken(c);
 	ticker := c.FormValue("Ticker")
 	self.err = self.reitServicer.SaveReitFavorite( userID, ticker)
 	if self.err != nil {
@@ -76,13 +75,12 @@ func (self Reit) SaveFavoriteReit(c echo.Context) error {
 	return c.String(http.StatusOK, "success")
 }
 
-func (self Reit) DeleteFavoriteReit(c echo.Context) error {
+func (self Reit_Handler) DeleteFavoriteReit(c echo.Context) error {
 	// Get name and email
 	fmt.Println("start : DeleteFavoriteReit")
 	//userID := c.FormValue("userId")
-	var reitController ReitController
-	reitController = Reit{}
-	userID,_ := reitController.GetUserFromToken(c);
+
+	userID,_ := self.authHandler.GetUserFromToken(c);
 	ticker := c.FormValue("Ticker")
 	self.err = self.reitServicer.DeleteReitFavorite(userID, ticker)
 	if self.err != nil {
@@ -91,32 +89,36 @@ func (self Reit) DeleteFavoriteReit(c echo.Context) error {
 	return c.String(http.StatusOK, "success")
 }
 
-func (self Reit) GetUserProfile(c echo.Context) error {
-	var reitController ReitController
-	reitController = Reit{}
-	userID,site := reitController.GetUserFromToken(c);
+func (self Reit_Handler) GetUserProfile(c echo.Context) error {
+
+	userID,site := self.authHandler.GetUserFromToken(c);
 	profile := self.reitServicer.GetUserProfileByCriteria(userID, site)
 	return c.JSON(http.StatusOK, profile)
 }
 
-func (self Reit) GetUserFromToken(c echo.Context) (string,string)  {
-	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(*models.JWTCustomClaims)
-	userID := claims.ID
-	site := claims.Site
-	return userID,site
-}
 
-func (self Reit) Search(c echo.Context) error {
+func (self Reit_Handler) Search(c echo.Context) error {
 	q := c.QueryParam("query")
 	results := self.reitServicer.SearchElastic(q)
 	return c.JSON(http.StatusOK, results)
 
 }
 
-func  SynData(c echo.Context) error {
-	reitServicer := services.Reit_Service{}
-	reitItems ,err := reitServicer.GetReitAll()
+func (self Reit_Handler) SearchMap(c echo.Context) error {
+	latQ := c.QueryParam("lat")
+	lonQ := c.QueryParam("lon")
+	if len(latQ) > 0 && len(lonQ) > 0 {
+		lat,_ := strconv.ParseFloat(latQ,64)
+		lon,_ := strconv.ParseFloat(lonQ,64)
+		results := self.reitServicer.SearchMap(lat,lon)
+		//results := services.SearchMapV2(lat,lon)
+		return c.JSON(http.StatusOK, results)
+	}
+	return c.JSON(http.StatusBadRequest,"" )
+
+}
+func (self Reit_Handler)  SynData(c echo.Context) error {
+	reitItems ,err := self.reitServicer.GetReitAll()
 	if err != nil {
 		return c.String(http.StatusBadRequest, "fail")
 	}

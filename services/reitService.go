@@ -22,6 +22,7 @@ type ReitServicer interface {
 	SaveUserProfile(profile *models.UserProfile) string
 	CreateNewUserProfile(facebook models.Facebook,google models.Google ) string
 	SearchElastic(query string) []models.ReitItem
+	SearchMap(lat float64 ,lon float64) models.PlaceInfo
 }
 
 type Reit_Service struct {
@@ -29,6 +30,7 @@ type Reit_Service struct {
 	reitItem models.ReitItem
 	reitFavorite []*models.FavoriteInfo
 	userProfile models.UserProfile
+	locationInfo models.PlaceInfo
 	err error
 }
 
@@ -278,55 +280,69 @@ func (self Reit_Service) SearchElastic(query string) []models.ReitItem {
 	return  nil
 }
 
-func (self Reit_Service) SearchMapElastic(lat float64 ,lon float64) []models.ReitItem {
-	ctx := context.Background()
-	client := app.GetElasticSearch()
+func (self Reit_Service) SearchMap(lat float64 ,lon float64) models.PlaceInfo {
+	fmt.Println("start : SearchMap")
+	session := *app.GetDocumentMongo()
+	defer session.Close()
+	// Optional. Switch the session to a monotonic behavior.
+	session.SetMode(mgo.Monotonic, true)
+	document := session.DB(config.Mongo_DB).C("Place")
+	scope := 50
+	query := []bson.M{{
+		"$geoNear": bson.M{
+			"near": bson.M{
+				"type":        "Point",
+				"coordinates": []float64{lon,lat},
+			},
+			"distanceField": "dist.calculated",
+			"maxDistance": scope, // miles to meter
+			"spherical": "true",
+		}},
+		{"$lookup": bson.M{ // lookup the documents table here
+			"from":         "REIT",
+			"localField":   "symbol",
+			"foreignField": "symbol",
+			"as":           "Reit",
+		}}}
 
-	// Search with a term query
-	//termQuery := elastic.NewMultiMatchQuery(query,"NickName","Symbol","ReitManager")
-	termQuery := elastic.NewGeoDistanceQuery("location.coordinates")
-	termQuery.Distance("100m")
-	termQuery.Point(lat,lon)
-
-	searchResult, err := client.Search().
-		Index(config.ElasticIndexName).   // search in index "reitapp"
-		Query(termQuery).   // specify the query
-		//Sort("user", true). // sort by "user" field, ascending
-		From(0).Size(10).   // take documents 0-9
-		Pretty(true).       // pretty print request and response JSON
-		Do(ctx)             // execute
+	pipe := document.Pipe(query)
+	err := pipe.One(&self.locationInfo)
 	if err != nil {
-		// Handle error
-		panic(err)
-	}
-
-	// TotalHits is another convenience function that works even when something goes wrong.
-	fmt.Printf("Found a total of %d reits\n", searchResult.TotalHits())
-
-	// Here's how you iterate through results with full control over each step.
-	if searchResult.Hits.TotalHits > 0 {
-		// Iterate through results
-		for _, hit := range searchResult.Hits.Hits {
-			// hit.Index contains the name of the index
-
-			// Deserialize hit.Source into a Tweet (could also be just a map[string]interface{}).
-			var t models.ReitItem
-			err := json.Unmarshal(*hit.Source, &t)
-			if err != nil {
-				// Deserialization failed
-			}
-			self.reitItems = append(self.reitItems,t)
-			// Work with tweet
-			fmt.Printf("reit by %s: %s\n", t.Symbol, t.NickName)
-
-		}
-		return self.reitItems
+		// TODO: Do something about the error
+		fmt.Printf("error : ", err)
 	} else {
-		// No hits
-		fmt.Print("Found no reit\n")
-	}
 
-	return  nil
+	}
+	return self.locationInfo
+}
+
+func  SearchMapV2(lat float64 ,lon float64) models.PlaceInfo {
+	fmt.Println("start : SearchMap")
+	session := *app.GetDocumentMongo()
+	defer session.Close()
+	// Optional. Switch the session to a monotonic behavior.
+	session.SetMode(mgo.Monotonic, true)
+	document := session.DB(config.Mongo_DB).C("Place")
+	scope := 50
+	place := models.PlaceInfo{}
+	err := document.Find(bson.M{
+		"location": bson.M{
+			"$near": bson.M{
+				"$geometry": bson.M{
+					"type":        "Point",
+					"coordinates": []float64{lon,lat},
+				},
+				"$maxDistance": scope,
+			},
+		},
+	}).One(&place)
+	if err != nil {
+		// TODO: Do something about the error
+		fmt.Printf("error : ", err)
+	} else {
+
+	}
+	return place
 }
 
 func AddDataElastic(reit models.ReitItem) error {

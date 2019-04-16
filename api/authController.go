@@ -45,10 +45,10 @@ type AuthController interface {
 	RefreshToken(c echo.Context)  error
 }
 
-type Auth struct {
+type Auth_Handler struct {
 	c echo.Context
 }
-func (self Auth) HandleGoogleLogin(c echo.Context) error {
+func (self Auth_Handler) HandleGoogleLogin(c echo.Context) error {
 	fmt.Println("Start handleGoogleLogin")
 	w := c.Response().Writer
 	r := c.Request()
@@ -57,7 +57,7 @@ func (self Auth) HandleGoogleLogin(c echo.Context) error {
 	return c.String(http.StatusUnauthorized,"")
 }
 
-func (self Auth) HandleGoogleCallback(c echo.Context) error {
+func (self Auth_Handler) HandleGoogleCallback(c echo.Context) error {
 	fmt.Println("Start handleGoogleCallback")
 	w := c.Response().Writer
 	r := c.Request()
@@ -91,7 +91,7 @@ func (self Auth) HandleGoogleCallback(c echo.Context) error {
 	return c.String(http.StatusUnauthorized,"")
 }
 
-func (self Auth) HandleFacebookLogin(c echo.Context) error {
+func (self Auth_Handler) HandleFacebookLogin(c echo.Context) error {
 	fmt.Println("Start handleFacebookLogin")
 	w := c.Response().Writer
 	r := c.Request()
@@ -100,7 +100,7 @@ func (self Auth) HandleFacebookLogin(c echo.Context) error {
 	return c.String(http.StatusUnauthorized,"")
 }
 
-func (self Auth) HandleFacebookCallback(c echo.Context) error {
+func (self Auth_Handler) HandleFacebookCallback(c echo.Context) error {
 	fmt.Println("Start handleFacebookCallback")
 	w := c.Response().Writer
 	r := c.Request()
@@ -207,7 +207,7 @@ func accessible(c echo.Context) error {
 	return c.String(http.StatusOK, "Accessible")
 }
 
-func (self Auth) Authentication(c echo.Context) error {
+func (self Auth_Handler) Authentication(c echo.Context) error {
 	token := c.QueryParam("token")
 	site := c.QueryParam("site")
 
@@ -253,7 +253,7 @@ func getProfileGoogle(token string,c echo.Context) error{
 
 }
 
-func (self Auth) RefreshToken(c echo.Context)  error{
+func (self Auth_Handler) RefreshToken(c echo.Context)  error{
 	user := c.Get("user").(*jwt.Token)
 	claims := user.Claims.(*models.JWTCustomClaims)
 	userID := claims.ID
@@ -281,4 +281,12 @@ func (self Auth) RefreshToken(c echo.Context)  error{
 	return c.JSON(http.StatusOK, map[string]string{
 		"token": t,
 	})
+}
+
+func (self Auth_Handler) GetUserFromToken(c echo.Context) (string,string)  {
+	user := c.Get("user").(*jwt.Token)
+	claims := user.Claims.(*models.JWTCustomClaims)
+	userID := claims.ID
+	site := claims.Site
+	return userID,site
 }

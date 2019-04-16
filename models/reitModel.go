@@ -25,13 +25,25 @@ type ReitItem struct {
 	MaxPriceOfDay     string `json:"maxPriceOfDay" bson:"maxPriceOfDay"`
 	MinPriceOfDay     string `json:"minPriceOfDay" bson:"minPriceOfDay"`
 	NickName          string `json:"nickName" bson:"nickName"`
-	Location 		  GeoJson `json:"location" bson:"location"`
 	MajorShareholders []MajorShareholders `json:"majorShareholders" bson:"majorShareholders"`
 }
 
 type GeoJson struct {
 	Type        string    `json:"-"`
-	Coordinates [][]float64 `json:"coordinates"`
+	Coordinates []float64 `json:"coordinates"`
+}
+
+type Place struct{
+	ID     string `json:"-" bson:"_id"`
+	Symbol string `json:"symbol" bson:"symbol"`
+	Location GeoJson `json:"location" bson:"location"`
+}
+
+type PlaceInfo struct{
+	ID     string `json:"-" bson:"_id"`
+	Symbol string `json:"symbol" bson:"symbol"`
+	Location GeoJson `json:"location" bson:"location"`
+	ReitItem []ReitItem `json:"Reit" bson:"Reit"`
 }
 
 type Favorite struct {
@@ -41,14 +53,14 @@ type Favorite struct {
 }
 
 type FavoriteInfo struct {
-	// ID     string `bson:"_id"`
+	ID     string `json:"-" bson:"_id"`
 	Symbol string `json:"symbol" bson:"symbol"`
 	UserId string `json:"userId" bson:"userId"`
 	ReitItem []ReitItem `json:"Reit" bson:"Reit"`
 }
 
 type MajorShareholders struct {
-	ID     string `json:"-" bson:"_id"`
+	ID     		string `json:"-" bson:"_id"`
 	Symbol 		string `json:"symbol" bson:"symbol"`
 	NameTh      string `json:"nameTh" bson:"nameTh"`
 	NameEn      string `json:"nameEn" bson:"nameEn"`
@@ -64,7 +76,7 @@ type JWTCustomClaims struct {
 }
 
 type UserProfile struct {
-	//ID       string `bson:"_id"`
+	ID       string `json:"-" bson:"_id"`
 	UserID   string `json:"userID" bson:"userID"`
 	UserName string `json:"userName" bson:"userName"`
 	FullName string `json:"fullName" bson:"fullName"`

@@ -22,8 +22,8 @@ func Init() *echo.Echo {
 	}))
 
 
-	reitController := api.Reit {}
-	authController := api.Auth {}
+	reitController := api.Reit_Handler {}
+	authController := api.Auth_Handler {}
 
 	//Authenticate
 	//e.GET("/", handleMain)
@@ -58,7 +58,8 @@ func Init() *echo.Echo {
 	r.GET("/refreshToken",authController.RefreshToken)
 
 	r.GET("/search", reitController.Search)
-	r.GET("/syncElastic", api.SynData)
+	r.GET("/searchMap", reitController.SearchMap)
+	r.GET("/syncElastic", reitController.SynData)
 
 	return e
 }
