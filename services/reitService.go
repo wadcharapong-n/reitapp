@@ -6,6 +6,7 @@ import (
 	"../config"
 	"encoding/json"
 	"fmt"
+	"github.com/night-codes/mgo-ai"
 	"github.com/olivere/elastic"
 	"golang.org/x/net/context"
 	"gopkg.in/mgo.v2"
@@ -92,8 +93,9 @@ func (self Reit_Service) SaveReitFavorite(userId string, symbol string) error {
 	defer session.Close()
 	// Optional. Switch the session to a monotonic behavior.
 	session.SetMode(mgo.Monotonic, true)
+	ai.Connect(session.DB(config.Mongo_DB).C("counters"))
 	document := session.DB(config.Mongo_DB).C("Favorite")
-	favorite := models.Favorite{UserId: userId, Symbol: symbol}
+	favorite := models.Favorite{ID:ai.Next("Favorite"),UserId: userId, Symbol: symbol}
 	self.err = document.Insert(&favorite)
 	if self.err != nil {
 		// TODO: Do something about the error
@@ -111,8 +113,8 @@ func (self Reit_Service) DeleteReitFavorite(userId string, ticker string) error{
 	// Optional. Switch the session to a monotonic behavior.
 	session.SetMode(mgo.Monotonic, true)
 	document := session.DB(config.Mongo_DB).C("Favorite")
-	favorite := models.Favorite{UserId: userId, Symbol: ticker}
-	self.err = document.Remove(&favorite)
+	//favorite := models.Favorite{UserId: userId, Symbol: ticker}
+	self.err = document.Remove(bson.M{"symbol":ticker,"userId":userId})
 	if self.err != nil {
 		// TODO: Do something about the error
 		fmt.Printf("error : ", self.err)
@@ -121,25 +123,6 @@ func (self Reit_Service) DeleteReitFavorite(userId string, ticker string) error{
 	}
 	return self.err
 }
-
-//func GetReitFavoriteByUserID(userId string) []*models.Favorite {
-//	fmt.Println("start : GetReitAll")
-//	session := *app.GetDocumentMongo()
-//	defer session.Close()
-//	// Optional. Switch the session to a monotonic behavior.
-//	session.SetMode(mgo.Monotonic, true)
-//	document := session.DB("REIT_DEV").C("Favorite")
-//	results := []*models.Favorite{}
-//
-//	err := document.Find(bson.M{"userId": userId }).All(&results)
-//	if err != nil {
-//		// TODO: Do something about the error
-//		fmt.Printf("error : ", err)
-//	} else {
-//
-//	}
-//	return results
-//}
 
 func (self Reit_Service) GetReitFavoriteByUserIDJoin(userId string) []*models.FavoriteInfo {
 	fmt.Println("start : GetReitAll")
@@ -206,8 +189,10 @@ func (self Reit_Service) SaveUserProfile(profile *models.UserProfile) string {
 	session := *app.GetDocumentMongo()
 	defer session.Close()
 	// Optional. Switch the session to a monotonic behavior.
+	ai.Connect(session.DB(config.Mongo_DB).C("counters"))
 	session.SetMode(mgo.Monotonic, true)
 	document := session.DB(config.Mongo_DB).C("UserProfile")
+	profile.ID = ai.Next("userProfile")
 	err := document.Insert(&profile)
 	if err != nil {
 		return "fail"
@@ -314,35 +299,6 @@ func (self Reit_Service) SearchMap(lat float64 ,lon float64) models.PlaceInfo {
 
 	}
 	return self.locationInfo
-}
-
-func  SearchMapV2(lat float64 ,lon float64) models.PlaceInfo {
-	fmt.Println("start : SearchMap")
-	session := *app.GetDocumentMongo()
-	defer session.Close()
-	// Optional. Switch the session to a monotonic behavior.
-	session.SetMode(mgo.Monotonic, true)
-	document := session.DB(config.Mongo_DB).C("Place")
-	scope := 50
-	place := models.PlaceInfo{}
-	err := document.Find(bson.M{
-		"location": bson.M{
-			"$near": bson.M{
-				"$geometry": bson.M{
-					"type":        "Point",
-					"coordinates": []float64{lon,lat},
-				},
-				"$maxDistance": scope,
-			},
-		},
-	}).One(&place)
-	if err != nil {
-		// TODO: Do something about the error
-		fmt.Printf("error : ", err)
-	} else {
-
-	}
-	return place
 }
 
 func AddDataElastic(reit models.ReitItem) error {
