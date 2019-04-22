@@ -1,5 +1,6 @@
-FROM golang:1.10 as build-dev
+FROM golang:1.12 as build-env
 
+ENV GO111MODULE=on
 ADD . /src
 RUN cd /src && go build -o reitapp
 
