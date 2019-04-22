@@ -1,9 +1,9 @@
 package api
 
 import (
-	"../config"
-	"../models"
-	"../services"
+	"github.com/wadcharapong/reit_app_api/config"
+	"github.com/wadcharapong/reit_app_api/models"
+	"github.com/wadcharapong/reit_app_api/services"
 	"encoding/json"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
