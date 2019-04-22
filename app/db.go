@@ -3,7 +3,7 @@ package app
 import (
 	"github.com/olivere/elastic"
 	"gopkg.in/mgo.v2"
-	"github.com/wadcharapong/reit_app_api/config"
+	"../config"
 )
 
 func GetDocumentMongo() *mgo.Session {

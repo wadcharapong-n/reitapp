@@ -1,9 +1,9 @@
 package services
 
 import (
-	"github.com/wadcharapong/reit_app_api/app"
-	"github.com/wadcharapong/reit_app_api/models"
-	"github.com/wadcharapong/reit_app_api/config"
+	"../app"
+	"../models"
+	"../config"
 	"encoding/json"
 	"fmt"
 	"github.com/night-codes/mgo-ai"

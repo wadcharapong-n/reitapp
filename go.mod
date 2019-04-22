@@ -17,7 +17,6 @@ require (
 	github.com/pkg/errors v0.8.1 // indirect
 	github.com/stretchr/testify v1.3.0
 	github.com/valyala/fasttemplate v1.0.1 // indirect
-	github.com/wadcharapong/reit_app_api v0.0.0-20190212164340-d91e32228967
 	golang.org/x/net v0.0.0-20190420063019-afa5a82059c6
 	golang.org/x/oauth2 v0.0.0-20190402181905-9f3314589c9a
 	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect

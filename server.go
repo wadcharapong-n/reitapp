@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/wadcharapong/REIT_APP_API/route"
+	"./route"
 )
 
 func main() {
