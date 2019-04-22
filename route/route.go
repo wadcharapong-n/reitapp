@@ -1,8 +1,8 @@
 package route
 
 import (
-	"../api"
-	"../models"
+	"github.com/wadcharapong/reitapp/api"
+	"github.com/wadcharapong/reitapp/models"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 )

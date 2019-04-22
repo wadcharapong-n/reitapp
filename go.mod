@@ -1,4 +1,4 @@
-module github.com/wadcharapong/REIT_APP_API
+module github.com/wadcharapong/reitapp
 
 go 1.12
 

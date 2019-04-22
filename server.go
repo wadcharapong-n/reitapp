@@ -1,7 +1,7 @@
 package main
 
 import (
-	"./route"
+	"github.com/wadcharapong/reitapp/route"
 )
 
 func main() {

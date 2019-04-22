@@ -1,8 +1,8 @@
 package api
 
 import (
-	"../models"
-	"../services"
+	"github.com/wadcharapong/reitapp/models"
+	"github.com/wadcharapong/reitapp/services"
 	"fmt"
 	"github.com/labstack/echo"
 	"net/http"
