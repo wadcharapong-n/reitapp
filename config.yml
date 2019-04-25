@@ -1,0 +1,22 @@
+app:
+  env:  "development"
+  port: 1323
+  debug: true
+
+mongodb:
+  connection: "mongodb://127.0.0.1:27017"
+  Mongo_DB: "REIT_DEV"
+
+elasticsearch:
+  connection: "http://127.0.0.1:9200"
+  indexName: "reitapp"
+
+facebook:
+  redirectURL: "http://localhost:1323/Auth/FacebookCallback"
+  client_ID: "385086385375815"
+  client_Secret: "baa3dce5c60b202469c4387f0b588766"
+  access_token_Facebook_URL: "https://graph.facebook.com/me?access_token="
+
+log:
+  level: "debug"
+  format: "json"

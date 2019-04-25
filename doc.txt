@@ -78,3 +78,31 @@
     "shares": "15000000",
     "sharesPercent": "3.11"
 }
+
+
+
+Rz71Mv4L75bhgQogsqEQ
+
+
+domain api : reit-api.odds.team
+ip local serv : 172.17.0.1
+
+step 1 : build image
+    docker build -t portus.odds.team/reit/reitapp:{nametag} .
+
+step 2 : push docker
+    docker push portus.odds.team/reit/reitapp:{nametag}
+
+step 3 : ssh to serv
+    ssh nc-user@reit-api.odds.team
+
+step 4 :
+    sudo -i
+    cd reit-app
+    vim file docker-compose
+    แก้ไขชื่อ tag
+    docker-compose up -d
+
+    docker-compose logs -f {name} api|es|mongo //ดู logs
+
+
