@@ -1,9 +1,10 @@
 package route
 
 import (
+	"github.com/wadcharapong/reitapp/api"
+	"github.com/wadcharapong/reitapp/models"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
-	"github.com/wadcharapong/reitapp/api"
 )
 
 func Init() *echo.Echo {
@@ -41,11 +42,11 @@ func Init() *echo.Echo {
 	// API group
 	r := e.Group("/api")
 	//Configure middleware with the custom claims type
-	//config := middleware.JWTConfig{
-	//	Claims:     &models.JWTCustomClaims{},
-	//	SigningKey: []byte("secret"),
-	//}
-	//r.Use(middleware.JWTWithConfig(config))
+	config := middleware.JWTConfig{
+		Claims:     &models.JWTCustomClaims{},
+		SigningKey: []byte("secret"),
+	}
+	r.Use(middleware.JWTWithConfig(config))
 
 	// Routes
 	r.GET("/reit", reitController.GetReitAll)
