@@ -2,8 +2,8 @@ package app
 
 import (
 	"github.com/olivere/elastic"
-	"gopkg.in/mgo.v2"
 	"github.com/wadcharapong/reitapp/config"
+	"gopkg.in/mgo.v2"
 )
 
 func GetDocumentMongo() *mgo.Session {
@@ -15,6 +15,7 @@ func GetDocumentMongo() *mgo.Session {
 }
 
 func GetElasticSearch() *elastic.Client {
+
 	elasticClient, err := elastic.NewClient(
 		elastic.SetURL(config.Elastic_URL),
 		elastic.SetSniff(false),

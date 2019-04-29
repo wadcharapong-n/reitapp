@@ -1,5 +1,7 @@
 package config
 
+import "os"
+
 var RedirectURL_Google = "http://reit-api.odds.team:1323/Auth/GoogleCallback"
 var ClientID_Google = "727520883795-jgv79pgu957lu3oojf8cv30akgbeep7j.apps.googleusercontent.com"
 var ClientSecret_Google = "C5Y7I3MYKuVoaNBczMn8qoub"
@@ -14,9 +16,15 @@ var Scopes_Facebook = []string{"public_profile", "email"}
 var URL_access_token_Facebook = "https://graph.facebook.com/me?access_token="
 
 //elasticsearch
-var ElasticIndexName = "reitapp"
-var Elastic_URL = "http://172.17.0.1:9200"
+//var ElasticIndexName = "reitapp"
+//var Elastic_URL = "http://172.17.0.1:9200"
+var ElasticIndexName =  os.Getenv("ELASTIC_INDEX")
+var Elastic_URL = os.Getenv("ELASTIC_URL")
 
-var Mongo_DB = "REIT_DEV"
-var Mongo_URL = "mongodb://172.17.0.1:27017"
-var Mongo_Colection = ""
+//mongo
+//var Mongo_DB = "REIT_DEV"
+//var Mongo_URL = "mongodb://172.17.0.1:27017"
+//var Mongo_Collection = ""
+var Mongo_DB = os.Getenv("MONGO_DB")
+var Mongo_URL = os.Getenv("MONGO_URL")
+var Mongo_Collection = ""
