@@ -166,6 +166,7 @@ func (self Reit_Service) CreateNewUserProfile(facebook models.Facebook,google mo
 				UserName: facebook.Name,
 				FullName:facebook.Name,
 				Email:facebook.Email,
+				Image:facebook.Picture.Data.URL,
 				Site:"facebook"}
 			message = reitServicer.SaveUserProfile(&userProfile)
 		}

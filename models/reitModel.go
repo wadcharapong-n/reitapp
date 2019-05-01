@@ -87,9 +87,24 @@ type UserProfile struct {
 }
 
 type Facebook struct {
-	ID     	string `bson:"id"`
-	Name 	string `bson:"name"`
-	Email	string `bson:"email"`
+	ID     	string `json:"id"`
+	Name 	string `json:"name"`
+	Email	string `json:"email"`
+	FirstName string `json:"first_name"`
+	LastName string `json:"last_name"`
+	MiddleName string `json:"middle_name"`
+	Picture Picture `json:"picture"`
+}
+
+type Picture struct {
+	Data Data `json:"data"`
+}
+
+type Data struct {
+	Height     		string `json:"height"`
+	IsSilhouette    string `json:"is_silhouette"`
+	URL     		string `json:"url"`
+	Width     		string `json:"width"`
 }
 
 type Google struct {
