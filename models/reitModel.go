@@ -30,6 +30,7 @@ type ReitItem struct {
 	InvestmentPolicy string `json:"investmentPolicy" bson:"investmentPolicy"`
 	MajorShareholders []MajorShareholders `json:"majorShareholders" bson:"majorShareholders"`
 	Place []Place `json:"place" bson:"place"`
+	DvdYield string `json:"dvdYield" bson:"dvdYield"`
 }
 
 type GeoJson struct {
