@@ -48,7 +48,14 @@ func (self Reit_Service) GetReitAll() ([]models.ReitItem, error) {
 			"localField":   "symbol",
 			"foreignField": "symbol",
 			"as":           "majorShareholders",
-		}}}
+		}},
+		{
+			"$lookup": bson.M{ // lookup the documents table here
+				"from":         "Place",
+				"localField":   "symbol",
+				"foreignField": "symbol",
+				"as":           "place",
+			}}}
 
 	pipe := document.Pipe(query)
 	self.err = pipe.All(&self.reitItems)
@@ -76,6 +83,13 @@ func (self Reit_Service) GetReitBySymbol(symbol string) (models.ReitItem, error)
 			"foreignField": "symbol",
 			"as":           "majorShareholders",
 		}},
+		{
+			"$lookup": bson.M{ // lookup the documents table here
+				"from":         "Place",
+				"localField":   "symbol",
+				"foreignField": "symbol",
+				"as":           "place",
+			}},
 		{"$match": bson.M{
 			"symbol": symbol,
 		}}}
@@ -273,7 +287,7 @@ func (self Reit_Service) SearchMap(lat float64 ,lon float64) models.PlaceInfo {
 	// Optional. Switch the session to a monotonic behavior.
 	session.SetMode(mgo.Monotonic, true)
 	document := session.DB(config.Mongo_DB).C("Place")
-	scope := 50
+	scope := 100
 	query := []bson.M{{
 		"$geoNear": bson.M{
 			"near": bson.M{
