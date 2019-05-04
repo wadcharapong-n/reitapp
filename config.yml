@@ -4,22 +4,22 @@ app:
   debug: true
 
 mongodb:
-  connection: "mongodb://127.0.0.1:27017"
+  connection: "mongodb://172.17.0.1:27017"
   collection: "REIT_DEV"
 
 elasticsearch:
-  connection: "http://127.0.0.1:9200"
+  connection: "http://172.17.0.1:9200"
   indexName: "reitapp"
 
 facebook:
-  redirectURL: "http://localhost:1323/Auth/FacebookCallback"
+  redirectURL: "https://reit-api.odds.team/Auth/FacebookCallback"
   clientID: "385086385375815"
   clientSecret: "baa3dce5c60b202469c4387f0b588766"
   accesstokenURL: "https://graph.facebook.com/me?fields=email,id,name,first_name,last_name,middle_name,picture&access_token="
   #  scope: []string{"id","name","first_name","last_name","middle_name","picture"}
 
 google:
-  redirectURL: "http://localhost:1323/Auth/GoogleCallback"
+  redirectURL: "https://reit-api.odds.team/Auth/GoogleCallback"
   clientID: "727520883795-jgv79pgu957lu3oojf8cv30akgbeep7j.apps.googleusercontent.com"
   clientSecret: "C5Y7I3MYKuVoaNBczMn8qoub"
   accesstokenURL: "https://www.googleapis.com/oauth2/v2/userinfo?access_token="
