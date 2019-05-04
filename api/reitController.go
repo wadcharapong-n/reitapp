@@ -43,9 +43,10 @@ func (self Reit_Handler) GetReitAll(c echo.Context) error {
 func (self Reit_Handler) GetReitBySymbol(c echo.Context) error {
 	symbol := c.Param("symbol")
 	self.reitItem, self.err = self.reitServicer.GetReitBySymbol(symbol)
-	if self.reitItem.ID == 0 {
-		return echo.NewHTTPError(http.StatusNotFound, "data not found")
-	}
+	// if self.reitItem.ID == 0 {
+	// 	print(self.reitItem.ID);
+	// 	return echo.NewHTTPError(http.StatusNotFound, "data not found")
+	// }
 	if self.err != nil {
 		return echo.NewHTTPError(http.StatusOK, self.err)
 	}

@@ -26,7 +26,11 @@ type ReitItem struct {
 	MinPriceOfDay     string `json:"minPriceOfDay" bson:"minPriceOfDay"`
 	NickName          string `json:"nickName" bson:"nickName"`
 	URL				  string `json:"url" bson:"url"`
+	PropertyManager string `json:"propertyManager" bson:"propertyManager"`
+	InvestmentPolicy string `json:"investmentPolicy" bson:"investmentPolicy"`
 	MajorShareholders []MajorShareholders `json:"majorShareholders" bson:"majorShareholders"`
+	Place []Place `json:"place" bson:"place"`
+	DvdYield string `json:"dvdYield" bson:"dvdYield"`
 }
 
 type GeoJson struct {
@@ -36,6 +40,8 @@ type GeoJson struct {
 
 type Place struct{
 	ID     uint64 `json:"-" bson:"_id"`
+	Name string `json:"name" bson:"name"`
+	Address string `json:"address" bson:"address"`
 	Symbol string `json:"symbol" bson:"symbol"`
 	Location GeoJson `json:"location" bson:"location"`
 }
@@ -43,6 +49,8 @@ type Place struct{
 type PlaceInfo struct{
 	ID     uint64 `json:"-" bson:"_id"`
 	Symbol string `json:"symbol" bson:"symbol"`
+	Name string `json:"name" bson:"name"`
+	Address string `json:"address" bson:"address"`
 	Location GeoJson `json:"location" bson:"location"`
 	ReitItem []ReitItem `json:"Reit" bson:"Reit"`
 }
