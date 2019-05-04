@@ -13,5 +13,6 @@ RUN CGO_ENABLED=0 go build -o reitapp
 FROM alpine
 RUN apk --no-cache add ca-certificates
 WORKDIR /app
+COPY --from=build-env /src/config.yml /app/config.yml
 COPY --from=build-env /src/reitapp /app/
 CMD /app/reitapp
