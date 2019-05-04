@@ -2,12 +2,12 @@ package app
 
 import (
 	"github.com/olivere/elastic"
-	"github.com/wadcharapong/reitapp/config"
+	"github.com/spf13/viper"
 	"gopkg.in/mgo.v2"
 )
 
 func GetDocumentMongo() *mgo.Session {
-	session, err := mgo.Dial(config.Mongo_URL)
+	session, err := mgo.Dial(viper.GetString("mongodb.connection"))
 	if err != nil {
 		panic(err)
 	}
@@ -17,7 +17,7 @@ func GetDocumentMongo() *mgo.Session {
 func GetElasticSearch() *elastic.Client {
 
 	elasticClient, err := elastic.NewClient(
-		elastic.SetURL(config.Elastic_URL),
+		elastic.SetURL(viper.GetString("elasticsearch.connection")),
 		elastic.SetSniff(false),
 	)
 	if err != nil {

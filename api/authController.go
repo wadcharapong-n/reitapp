@@ -1,13 +1,13 @@
 package api
 
 import (
-	"github.com/wadcharapong/reitapp/config"
-	"github.com/wadcharapong/reitapp/models"
-	"github.com/wadcharapong/reitapp/services"
 	"encoding/json"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
+	"github.com/spf13/viper"
+	"github.com/wadcharapong/reitapp/models"
+	"github.com/wadcharapong/reitapp/services"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/facebook"
 	"golang.org/x/oauth2/google"
@@ -18,18 +18,18 @@ import (
 
 var (
 	googleOauthConfig = &oauth2.Config{
-		RedirectURL:  config.RedirectURL_Google,
-		ClientID:     config.ClientID_Google,
-		ClientSecret: config.ClientSecret_Google,
-		Scopes:       config.Scopes_Google,
+		RedirectURL:  viper.GetString("google.redirectURL"),
+		ClientID:     viper.GetString("google.clientID"),
+		ClientSecret: viper.GetString("google.clientSecret"),
+		Scopes:       nil,
 		Endpoint:     google.Endpoint,
 	}
 
 	facebookOauthConfig = &oauth2.Config{
-		RedirectURL:  config.RedirectURL_Facebook,
-		ClientID:     config.ClientID_Facebook,
-		ClientSecret: config.ClientSecret_Facebook,
-		Scopes:       config.Scopes_Facebook,
+		RedirectURL:  viper.GetString("facebook.redirectURL"),
+		ClientID:     viper.GetString("facebook.clientID"),
+		ClientSecret: viper.GetString("facebook.clientSecret"),
+		Scopes:       nil,
 		Endpoint:     facebook.Endpoint,
 	}
 	// Some random string, random for each request
@@ -76,7 +76,7 @@ func (self Auth_Handler) HandleGoogleCallback(c echo.Context) error {
 		return nil
 	}
 
-	response, err := http.Get(config.URL_access_token_Google + token.AccessToken)
+	response, err := http.Get(viper.GetString("google.accesstokenURL") + token.AccessToken)
 
 	defer response.Body.Close()
 	contents, err := ioutil.ReadAll(response.Body)
@@ -119,7 +119,7 @@ func (self Auth_Handler) HandleFacebookCallback(c echo.Context) error {
 		return nil
 	}
 
-	response, err := http.Get(config.URL_access_token_Facebook + token.AccessToken)
+	response, err := http.Get(viper.GetString("facebook.accesstokenURL") + token.AccessToken)
 
 	defer response.Body.Close()
 	contents, err := ioutil.ReadAll(response.Body)
@@ -221,7 +221,7 @@ func (self Auth_Handler) Authentication(c echo.Context) error {
 }
 
 func getProfileFacebook(token string,c echo.Context) error {
-	response, err := http.Get(config.URL_access_token_Facebook + token)
+	response, err := http.Get(viper.GetString("facebook.accesstokenURL") + token)
 
 	defer response.Body.Close()
 	contents, err := ioutil.ReadAll(response.Body)
@@ -237,7 +237,7 @@ func getProfileFacebook(token string,c echo.Context) error {
 }
 
 func getProfileGoogle(token string,c echo.Context) error{
-	response, err := http.Get(config.URL_access_token_Google + token)
+	response, err := http.Get(viper.GetString("google.accesstokenURL") + token)
 
 	defer response.Body.Close()
 	contents, err := ioutil.ReadAll(response.Body)

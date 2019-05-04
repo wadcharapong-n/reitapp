@@ -1,10 +1,10 @@
 package route
 
 import (
-	"github.com/wadcharapong/reitapp/api"
-	"github.com/wadcharapong/reitapp/models"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
+	"github.com/wadcharapong/reitapp/api"
+	"github.com/wadcharapong/reitapp/models"
 )
 
 func Init() *echo.Echo {
@@ -60,7 +60,7 @@ func Init() *echo.Echo {
 	r.GET("/search", reitController.Search)
 	r.GET("/searchMap", reitController.SearchMap)
 	r.GET("/syncElastic", reitController.SynData)
-
+	
 	return e
 }
 

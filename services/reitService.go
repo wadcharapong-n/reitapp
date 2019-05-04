@@ -1,13 +1,13 @@
 package services
 
 import (
-	"github.com/wadcharapong/reitapp/app"
-	"github.com/wadcharapong/reitapp/models"
-	"github.com/wadcharapong/reitapp/config"
 	"encoding/json"
 	"fmt"
 	"github.com/night-codes/mgo-ai"
 	"github.com/olivere/elastic"
+	"github.com/spf13/viper"
+	"github.com/wadcharapong/reitapp/app"
+	"github.com/wadcharapong/reitapp/models"
 	"golang.org/x/net/context"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
@@ -40,8 +40,7 @@ func (self Reit_Service) GetReitAll() ([]models.ReitItem, error) {
 	defer session.Close()
 	// Optional. Switch the session to a monotonic behavior.
 	session.SetMode(mgo.Monotonic, true)
-	document := session.DB(config.Mongo_DB).C("REIT")
-	//self.err = document.Find(nil).All(&self.reitItems)
+	document := session.DB(viper.GetString("mongodb.collection")).C("REIT")
 	query := []bson.M{{
 		"$lookup": bson.M{ // lookup the documents table here
 			"from":         "MajorShareholders",
@@ -67,8 +66,7 @@ func (self Reit_Service) GetReitBySymbol(symbol string) (models.ReitItem, error)
 	defer session.Close()
 	// Optional. Switch the session to a monotonic behavior.
 	session.SetMode(mgo.Monotonic, true)
-	document := session.DB(config.Mongo_DB).C("REIT")
-	//self.err = document.Find(bson.M{"symbol": symbol}).One(&self.reitItem)
+	document := session.DB(viper.GetString("mongodb.collection")).C("REIT")
 	query := []bson.M{{
 		"$lookup": bson.M{ // lookup the documents table here
 			"from":         "MajorShareholders",
@@ -88,13 +86,12 @@ func (self Reit_Service) GetReitBySymbol(symbol string) (models.ReitItem, error)
 
 
 func (self Reit_Service) SaveReitFavorite(userId string, symbol string) error {
-	fmt.Println("start : GetReitAll")
 	session := *app.GetDocumentMongo()
 	defer session.Close()
 	// Optional. Switch the session to a monotonic behavior.
 	session.SetMode(mgo.Monotonic, true)
-	ai.Connect(session.DB(config.Mongo_DB).C("counters"))
-	document := session.DB(config.Mongo_DB).C("Favorite")
+	ai.Connect(session.DB(viper.GetString("mongodb.collection")).C("counters"))
+	document := session.DB(viper.GetString("mongodb.collection")).C("Favorite")
 	favorite := models.Favorite{ID:ai.Next("Favorite"),UserId: userId, Symbol: symbol}
 	self.err = document.Insert(&favorite)
 	if self.err != nil {
@@ -107,13 +104,11 @@ func (self Reit_Service) SaveReitFavorite(userId string, symbol string) error {
 }
 
 func (self Reit_Service) DeleteReitFavorite(userId string, ticker string) error{
-	fmt.Println("start : GetReitAll")
 	session := *app.GetDocumentMongo()
 	defer session.Close()
 	// Optional. Switch the session to a monotonic behavior.
 	session.SetMode(mgo.Monotonic, true)
-	document := session.DB(config.Mongo_DB).C("Favorite")
-	//favorite := models.Favorite{UserId: userId, Symbol: ticker}
+	document := session.DB(viper.GetString("mongodb.collection")).C("Favorite")
 	self.err = document.Remove(bson.M{"symbol":ticker,"userId":userId})
 	if self.err != nil {
 		// TODO: Do something about the error
@@ -125,12 +120,11 @@ func (self Reit_Service) DeleteReitFavorite(userId string, ticker string) error{
 }
 
 func (self Reit_Service) GetReitFavoriteByUserIDJoin(userId string) []*models.FavoriteInfo {
-	fmt.Println("start : GetReitAll")
 	session := *app.GetDocumentMongo()
 	defer session.Close()
 	// Optional. Switch the session to a monotonic behavior.
 	session.SetMode(mgo.Monotonic, true)
-	document := session.DB(config.Mongo_DB).C("Favorite")
+	document := session.DB(viper.GetString("mongodb.collection")).C("Favorite")
 
 	query := []bson.M{{
 		"$lookup": bson.M{ // lookup the documents table here
@@ -190,9 +184,9 @@ func (self Reit_Service) SaveUserProfile(profile *models.UserProfile) string {
 	session := *app.GetDocumentMongo()
 	defer session.Close()
 	// Optional. Switch the session to a monotonic behavior.
-	ai.Connect(session.DB(config.Mongo_DB).C("counters"))
+	ai.Connect(session.DB(viper.GetString("mongodb.collection")).C("counters"))
 	session.SetMode(mgo.Monotonic, true)
-	document := session.DB(config.Mongo_DB).C("UserProfile")
+	document := session.DB(viper.GetString("mongodb.collection")).C("UserProfile")
 	profile.ID = ai.Next("userProfile")
 	err := document.Insert(&profile)
 	if err != nil {
@@ -207,7 +201,7 @@ func (self Reit_Service) GetUserProfileByCriteria(userId string, site string ) m
 	defer session.Close()
 	// Optional. Switch the session to a monotonic behavior.
 	session.SetMode(mgo.Monotonic, true)
-	document := session.DB(config.Mongo_DB).C("UserProfile")
+	document := session.DB(viper.GetString("mongodb.collection")).C("UserProfile")
 	err := document.Find(bson.M{"userID": userId,"site": site}).One(&self.userProfile)
 	if err != nil {
 		// TODO: Do something about the error
@@ -226,7 +220,7 @@ func (self Reit_Service) SearchElastic(query string) []models.ReitItem {
 	termQuery := elastic.NewMultiMatchQuery(query,"nickName","symbol","reitManager").Type("phrase_prefix")
 	//termQuery := elastic.NewTermQuery("nickName",query)
 	searchResult, err := client.Search().
-		Index(config.ElasticIndexName).   // search in index "reitapp"
+		Index(viper.GetString("elasticsearch.indexName")).   // search in index "reitapp"
 		Query(termQuery).   // specify the query
 		//Sort("user", true). // sort by "user" field, ascending
 		From(0).Size(10).   // take documents 0-9
@@ -272,7 +266,7 @@ func (self Reit_Service) SearchMap(lat float64 ,lon float64) models.PlaceInfo {
 	defer session.Close()
 	// Optional. Switch the session to a monotonic behavior.
 	session.SetMode(mgo.Monotonic, true)
-	document := session.DB(config.Mongo_DB).C("Place")
+	document := session.DB(viper.GetString("mongodb.collection")).C("Place")
 	scope := 50
 	query := []bson.M{{
 		"$geoNear": bson.M{
@@ -309,7 +303,7 @@ func AddDataElastic(reit models.ReitItem) error {
 	CheckIndex()
 	//Search with a term query// Index a tweet (using JSON serialization)
 	_, err := client.Index().
-		Index(config.ElasticIndexName).
+		Index(viper.GetString("elasticsearch.indexName")).
 		Type("reit").
 		//Id("1").
 		BodyJson(&reit).
@@ -325,14 +319,14 @@ func AddDataElastic(reit models.ReitItem) error {
 func CheckIndex(){
 	ctx := context.Background()
 	client := app.GetElasticSearch()
-	exists, err := client.IndexExists(config.ElasticIndexName).Do(ctx)
+	exists, err := client.IndexExists(viper.GetString("elasticsearch.indexName")).Do(ctx)
 	if err != nil {
 		// Handle error
 		panic(err)
 	}
 	if !exists {
 		// Create a new index.
-		createIndex, err := client.CreateIndex(config.ElasticIndexName).BodyString(models.Mapping).Do(ctx)
+		createIndex, err := client.CreateIndex(viper.GetString("elasticsearch.indexName")).BodyString(models.Mapping).Do(ctx)
 		if err != nil {
 			// Handle error
 			panic(err)
