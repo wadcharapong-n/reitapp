@@ -35,22 +35,30 @@ type Reit_Service struct {
 	err error
 }
 
+const reitCollection = "REIT"
+const majorShareholdersCollection = "MajorShareholders"
+const placeCollection = "Place"
+const favoriteCollection = "Favorite"
+const countersCollection = "counters"
+const userProfileCollection = "UserProfile"
+
+
 func (self Reit_Service) GetReitAll() ([]models.ReitItem, error) {
 	session := *app.GetDocumentMongo()
 	defer session.Close()
 	// Optional. Switch the session to a monotonic behavior.
 	session.SetMode(mgo.Monotonic, true)
-	document := session.DB(viper.GetString("mongodb.collection")).C("REIT")
+	document := session.DB(viper.GetString("mongodb.collection")).C(reitCollection)
 	query := []bson.M{{
 		"$lookup": bson.M{ // lookup the documents table here
-			"from":         "MajorShareholders",
+			"from":         majorShareholdersCollection,
 			"localField":   "symbol",
 			"foreignField": "symbol",
 			"as":           "majorShareholders",
 		}},
 		{
 			"$lookup": bson.M{ // lookup the documents table here
-				"from":         "Place",
+				"from":         placeCollection,
 				"localField":   "symbol",
 				"foreignField": "symbol",
 				"as":           "place",
@@ -73,17 +81,17 @@ func (self Reit_Service) GetReitBySymbol(symbol string) (models.ReitItem, error)
 	defer session.Close()
 	// Optional. Switch the session to a monotonic behavior.
 	session.SetMode(mgo.Monotonic, true)
-	document := session.DB(viper.GetString("mongodb.collection")).C("REIT")
+	document := session.DB(viper.GetString("mongodb.collection")).C(reitCollection)
 	query := []bson.M{{
 		"$lookup": bson.M{ // lookup the documents table here
-			"from":         "MajorShareholders",
+			"from":         majorShareholdersCollection,
 			"localField":   "symbol",
 			"foreignField": "symbol",
 			"as":           "majorShareholders",
 		}},
 		{
 			"$lookup": bson.M{ // lookup the documents table here
-				"from":         "Place",
+				"from":         placeCollection,
 				"localField":   "symbol",
 				"foreignField": "symbol",
 				"as":           "place",
@@ -104,8 +112,8 @@ func (self Reit_Service) SaveReitFavorite(userId string, symbol string) error {
 	defer session.Close()
 	// Optional. Switch the session to a monotonic behavior.
 	session.SetMode(mgo.Monotonic, true)
-	ai.Connect(session.DB(viper.GetString("mongodb.collection")).C("counters"))
-	document := session.DB(viper.GetString("mongodb.collection")).C("Favorite")
+	ai.Connect(session.DB(viper.GetString("mongodb.collection")).C(countersCollection))
+	document := session.DB(viper.GetString("mongodb.collection")).C(favoriteCollection)
 	favorite := models.Favorite{ID:ai.Next("Favorite"),UserId: userId, Symbol: symbol}
 	self.err = document.Insert(&favorite)
 	if self.err != nil {
@@ -122,7 +130,7 @@ func (self Reit_Service) DeleteReitFavorite(userId string, ticker string) error{
 	defer session.Close()
 	// Optional. Switch the session to a monotonic behavior.
 	session.SetMode(mgo.Monotonic, true)
-	document := session.DB(viper.GetString("mongodb.collection")).C("Favorite")
+	document := session.DB(viper.GetString("mongodb.collection")).C(favoriteCollection)
 	self.err = document.Remove(bson.M{"symbol":ticker,"userId":userId})
 	if self.err != nil {
 		// TODO: Do something about the error
@@ -138,11 +146,11 @@ func (self Reit_Service) GetReitFavoriteByUserIDJoin(userId string) []*models.Fa
 	defer session.Close()
 	// Optional. Switch the session to a monotonic behavior.
 	session.SetMode(mgo.Monotonic, true)
-	document := session.DB(viper.GetString("mongodb.collection")).C("Favorite")
+	document := session.DB(viper.GetString("mongodb.collection")).C(favoriteCollection)
 
 	query := []bson.M{{
 		"$lookup": bson.M{ // lookup the documents table here
-			"from":         "REIT",
+			"from":         reitCollection,
 			"localField":   "symbol",
 			"foreignField": "symbol",
 			"as":           "Reit",
@@ -198,9 +206,9 @@ func (self Reit_Service) SaveUserProfile(profile *models.UserProfile) string {
 	session := *app.GetDocumentMongo()
 	defer session.Close()
 	// Optional. Switch the session to a monotonic behavior.
-	ai.Connect(session.DB(viper.GetString("mongodb.collection")).C("counters"))
+	ai.Connect(session.DB(viper.GetString("mongodb.collection")).C(countersCollection))
 	session.SetMode(mgo.Monotonic, true)
-	document := session.DB(viper.GetString("mongodb.collection")).C("UserProfile")
+	document := session.DB(viper.GetString("mongodb.collection")).C(userProfileCollection)
 	profile.ID = ai.Next("userProfile")
 	err := document.Insert(&profile)
 	if err != nil {
@@ -215,7 +223,7 @@ func (self Reit_Service) GetUserProfileByCriteria(userId string, site string ) m
 	defer session.Close()
 	// Optional. Switch the session to a monotonic behavior.
 	session.SetMode(mgo.Monotonic, true)
-	document := session.DB(viper.GetString("mongodb.collection")).C("UserProfile")
+	document := session.DB(viper.GetString("mongodb.collection")).C(userProfileCollection)
 	err := document.Find(bson.M{"userID": userId,"site": site}).One(&self.userProfile)
 	if err != nil {
 		// TODO: Do something about the error
@@ -280,7 +288,7 @@ func (self Reit_Service) SearchMap(lat float64 ,lon float64) models.PlaceInfo {
 	defer session.Close()
 	// Optional. Switch the session to a monotonic behavior.
 	session.SetMode(mgo.Monotonic, true)
-	document := session.DB(viper.GetString("mongodb.collection")).C("Place")
+	document := session.DB(viper.GetString("mongodb.collection")).C(placeCollection)
 	scope := 100
 
 	query := []bson.M{{
@@ -294,7 +302,7 @@ func (self Reit_Service) SearchMap(lat float64 ,lon float64) models.PlaceInfo {
 			"spherical": "true",
 		}},
 		{"$lookup": bson.M{ // lookup the documents table here
-			"from":         "REIT",
+			"from":         reitCollection,
 			"localField":   "symbol",
 			"foreignField": "symbol",
 			"as":           "Reit",
