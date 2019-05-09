@@ -24,6 +24,7 @@ type ReitServicer interface {
 	CreateNewUserProfile(facebook models.Facebook,google models.Google ) string
 	SearchElastic(query string) []models.ReitItem
 	SearchMap(lat float64 ,lon float64) models.PlaceInfo
+	InsertReit(reit models.Reit) error
 }
 
 type Reit_Service struct {
@@ -33,6 +34,7 @@ type Reit_Service struct {
 	userProfile models.UserProfile
 	locationInfo models.PlaceInfo
 	err error
+	reit []models.Reit
 }
 
 const reitCollection = "REIT"
@@ -319,7 +321,7 @@ func (self Reit_Service) SearchMap(lat float64 ,lon float64) models.PlaceInfo {
 	return self.locationInfo
 }
 
-func AddDataElastic(reit models.ReitItem) error {
+func AddDataElastic(reit models.Reit) error {
 	ctx := context.Background()
 	client := app.GetElasticSearch()
 
@@ -336,7 +338,7 @@ func AddDataElastic(reit models.ReitItem) error {
 		panic(err)
 	}
 
-	return nil
+	return err
 }
 
 func CheckIndex(){
@@ -358,4 +360,37 @@ func CheckIndex(){
 			// Not acknowledged
 		}
 	}
+}
+
+func (self Reit_Service) GetReits() ([]models.Reit, error) {
+	session := *app.GetDocumentMongo()
+	defer session.Close()
+	// Optional. Switch the session to a monotonic behavior.
+	session.SetMode(mgo.Monotonic, true)
+	document := session.DB(viper.GetString("mongodb.collection")).C(reitCollection)
+	self.err = document.Find(bson.M{}).All(&self.reit)
+	if self.err != nil {
+		// TODO: Do something about the error
+		fmt.Printf("error : ", self.err)
+	} else {
+
+	}
+	return self.reit, self.err
+}
+
+func (self Reit_Service) InsertReit(reit models.Reit) (error){
+	session := *app.GetDocumentMongo()
+	defer session.Close()
+	// Optional. Switch the session to a monotonic behavior.
+	ai.Connect(session.DB(viper.GetString("mongodb.collection")).C(countersCollection))
+	session.SetMode(mgo.Monotonic, true)
+	document := session.DB(viper.GetString("mongodb.collection")).C(reitCollection)
+	reit.ID = ai.Next("reit")
+	self.err = document.Insert(reit)
+	if self.err != nil {
+		// TODO: Do something about the error
+		fmt.Printf("error : ", self.err)
+	}
+	self.err = AddDataElastic(reit)
+	return self.err
 }

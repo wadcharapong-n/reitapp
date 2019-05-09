@@ -19,6 +19,7 @@ type ReitController interface {
 	GetUserFromToken(c echo.Context) (string,string)
 	Search(c echo.Context) error
   	SynData(c echo.Context) error
+	AddReit(c echo.Context) error
 }
 
 type Reit_Handler struct {
@@ -119,7 +120,7 @@ func (self Reit_Handler) SearchMap(c echo.Context) error {
 
 }
 func (self Reit_Handler)  SynData(c echo.Context) error {
-	reitItems ,err := self.reitServicer.GetReitAll()
+	reitItems ,err := self.reitServicer.GetReits()
 	if err != nil {
 		return c.String(http.StatusBadRequest, "fail")
 	}
@@ -129,3 +130,40 @@ func (self Reit_Handler)  SynData(c echo.Context) error {
 	return c.String(http.StatusOK, "success")
 }
 
+func (self Reit_Handler)  AddReit(c echo.Context) error {
+
+	reitParam := new(models.ReitItem)
+	err := c.Bind(reitParam)
+	if err != nil {
+		return c.String(http.StatusBadRequest, "")
+	}
+	reit := models.Reit{reitParam.ID,
+		reitParam.TrustNameTh,
+		reitParam.TrustNameEn,
+		reitParam.Symbol,
+		reitParam.Trustee,
+		reitParam.Address,
+		reitParam.InvestmentAmount,
+		reitParam.EstablishmentDate,
+		reitParam.RegistrationDate,
+		reitParam.ReitManager,
+		reitParam.ParValue,
+		reitParam.CeilingValue,
+		reitParam.FloorValue,
+		reitParam.PeValue,
+		reitParam.ParNAV,
+		reitParam.Policy,
+		reitParam.PriceOfDay,
+		reitParam.MaxPriceOfDay,
+		reitParam.MinPriceOfDay,
+		reitParam.NickName,
+		reitParam.URL,
+		reitParam.PropertyManager,
+		reitParam.InvestmentAmount,
+		reitParam.DvdYield}
+	err = self.reitServicer.InsertReit(reit)
+	if err != nil {
+		return c.String(http.StatusOK, "Insert Fail")
+	}
+	return c.String(http.StatusOK, "Insert Success")
+}

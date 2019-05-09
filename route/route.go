@@ -60,6 +60,7 @@ func Init() *echo.Echo {
 	r.GET("/search", reitController.Search)
 	r.GET("/searchMap", reitController.SearchMap)
 	r.GET("/syncElastic", reitController.SynData)
+	r.POST("/addReit",reitController.AddReit)
 	
 	return e
 }

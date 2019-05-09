@@ -33,6 +33,33 @@ type ReitItem struct {
 	DvdYield string `json:"dvdYield" bson:"dvdYield"`
 }
 
+type Reit struct {
+	ID     			  uint64 `json:"-" bson:"_id"`
+	TrustNameTh       string `json:"trustNameTh" bson:"trustNameTh"`
+	TrustNameEn       string `json:"trustNameEn" bson:"trustNameEn"`
+	Symbol            string `json:"symbol" bson:"symbol"`
+	Trustee           string `json:"trustee" bson:"trustee"`
+	Address           string `json:"address" bson:"address"`
+	InvestmentAmount  string `json:"investmentAmount" bson:"investmentAmount"`
+	EstablishmentDate string `json:"establishmentDate" bson:"establishmentDate"`
+	RegistrationDate  string `json:"registrationDate" bson:"registrationDate"`
+	ReitManager       string `json:"reitManager" bson:"reitManager"`
+	ParValue          string `json:"parValue" bson:"parValue"`
+	CeilingValue      string `json:"ceilingValue" bson:"ceilingValue"`
+	FloorValue		  string `json:"floorValue" bson:"floorValue"`
+	PeValue           string `json:"parNAV" bson:"parNAV"`
+	ParNAV            string `json:"peValue" bson:"peValue"`
+	Policy            string `json:"policy" bson:"policy"`
+	PriceOfDay        string `json:"priceOfDay" bson:"priceOfDay"`
+	MaxPriceOfDay     string `json:"maxPriceOfDay" bson:"maxPriceOfDay"`
+	MinPriceOfDay     string `json:"minPriceOfDay" bson:"minPriceOfDay"`
+	NickName          string `json:"nickName" bson:"nickName"`
+	URL				  string `json:"url" bson:"url"`
+	PropertyManager string `json:"propertyManager" bson:"propertyManager"`
+	InvestmentPolicy string `json:"investmentPolicy" bson:"investmentPolicy"`
+	DvdYield string `json:"dvdYield" bson:"dvdYield"`
+}
+
 type GeoJson struct {
 	Type        string    `json:"-"`
 	Coordinates []float64 `json:"coordinates"`
