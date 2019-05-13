@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/wadcharapong/reitapp/models"
 	"github.com/wadcharapong/reitapp/services"
+	"github.com/wadcharapong/reitapp/util"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/facebook"
 	"golang.org/x/oauth2/google"
@@ -85,8 +86,10 @@ func (self Auth_Handler) HandleGoogleCallback(c echo.Context) error {
 		json.Unmarshal(contents, &google)
 		var reitServicer services.ReitServicer
 		reitServicer = services.Reit_Service{}
-		reitServicer.CreateNewUserProfile(models.Facebook{}, google)
-		createTokenFromGoogle(c, google)
+		message := reitServicer.CreateNewUserProfile(models.Facebook{}, google)
+		if message == util.SUCCESS {
+			createTokenFromGoogle(c, google)
+		}
 	}
 	return c.String(http.StatusUnauthorized,"")
 }
@@ -128,8 +131,10 @@ func (self Auth_Handler) HandleFacebookCallback(c echo.Context) error {
 		json.Unmarshal(contents, &facebook)
 		var reitServicer services.ReitServicer
 		reitServicer = services.Reit_Service{}
-		reitServicer.CreateNewUserProfile(facebook, models.Google{})
-		createTokenFromFacebook(c, facebook)
+		message := reitServicer.CreateNewUserProfile(facebook, models.Google{})
+		if message == util.SUCCESS {
+			createTokenFromFacebook(c, facebook)
+		}
 	}
 	return c.String(http.StatusUnauthorized,"")
 
@@ -230,8 +235,10 @@ func getProfileFacebook(token string,c echo.Context) error {
 		json.Unmarshal(contents, &facebook)
 		var reitServicer services.ReitServicer
 		reitServicer = services.Reit_Service{}
-		reitServicer.CreateNewUserProfile(facebook, models.Google{})
-		createTokenFromFacebook(c, facebook)
+		message := reitServicer.CreateNewUserProfile(facebook, models.Google{})
+		if message == util.SUCCESS {
+			createTokenFromFacebook(c, facebook)
+		}
 	}
 	return c.String(http.StatusUnauthorized, "")
 }
@@ -246,8 +253,10 @@ func getProfileGoogle(token string,c echo.Context) error{
 		json.Unmarshal(contents, &google)
 		var reitServicer services.ReitServicer
 		reitServicer = services.Reit_Service{}
-		reitServicer.CreateNewUserProfile(models.Facebook{}, google)
-		createTokenFromGoogle(c, google)
+		message := reitServicer.CreateNewUserProfile(models.Facebook{}, google)
+		if message == util.SUCCESS {
+			createTokenFromGoogle(c, google)
+		}
 	}
 	return c.String(http.StatusUnauthorized, "")
 

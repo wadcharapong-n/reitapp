@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/wadcharapong/reitapp/app"
 	"github.com/wadcharapong/reitapp/models"
+	"github.com/wadcharapong/reitapp/util"
 	"golang.org/x/net/context"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
@@ -18,13 +19,14 @@ type ReitServicer interface {
 	GetReitAll() ([]models.ReitItem, error)
 	SaveReitFavorite(userId string, symbol string) error
 	DeleteReitFavorite(userId string, ticker string) error
-	GetReitFavoriteByUserIDJoin(userId string) []*models.FavoriteInfo
+	GetReitFavoriteByUserIDJoin(userId string) ([]*models.FavoriteInfo,error)
 	GetUserProfileByCriteria(userId string, site string ) models.UserProfile
 	SaveUserProfile(profile *models.UserProfile) string
 	CreateNewUserProfile(facebook models.Facebook,google models.Google ) string
 	SearchElastic(query string) []models.ReitItem
 	SearchMap(lat float64 ,lon float64) models.PlaceInfo
 	InsertReit(reit models.Reit) error
+	UpdateUserProfile(profile *models.UserProfile) string
 }
 
 type Reit_Service struct {
@@ -69,10 +71,7 @@ func (self Reit_Service) GetReitAll() ([]models.ReitItem, error) {
 	pipe := document.Pipe(query)
 	self.err = pipe.All(&self.reitItems)
 	if self.err != nil {
-		// TODO: Do something about the error
 		fmt.Printf("error : ", self.err)
-	} else {
-
 	}
 	return self.reitItems, self.err
 }
@@ -104,6 +103,9 @@ func (self Reit_Service) GetReitBySymbol(symbol string) (models.ReitItem, error)
 
 	pipe := document.Pipe(query)
 	self.err = pipe.One(&self.reitItem)
+	if self.err != nil {
+		fmt.Printf("error : ", self.err)
+	}
 	return self.reitItem, self.err
 }
 
@@ -119,10 +121,7 @@ func (self Reit_Service) SaveReitFavorite(userId string, symbol string) error {
 	favorite := models.Favorite{ID:ai.Next("Favorite"),UserId: userId, Symbol: symbol}
 	self.err = document.Insert(&favorite)
 	if self.err != nil {
-		// TODO: Do something about the error
 		fmt.Printf("error : ", self.err)
-	} else {
-
 	}
 	return self.err
 }
@@ -135,15 +134,12 @@ func (self Reit_Service) DeleteReitFavorite(userId string, ticker string) error{
 	document := session.DB(viper.GetString("mongodb.collection")).C(favoriteCollection)
 	self.err = document.Remove(bson.M{"symbol":ticker,"userId":userId})
 	if self.err != nil {
-		// TODO: Do something about the error
 		fmt.Printf("error : ", self.err)
-	} else {
-
 	}
 	return self.err
 }
 
-func (self Reit_Service) GetReitFavoriteByUserIDJoin(userId string) []*models.FavoriteInfo {
+func (self Reit_Service) GetReitFavoriteByUserIDJoin(userId string) ([]*models.FavoriteInfo,error) {
 	session := *app.GetDocumentMongo()
 	defer session.Close()
 	// Optional. Switch the session to a monotonic behavior.
@@ -162,14 +158,11 @@ func (self Reit_Service) GetReitFavoriteByUserIDJoin(userId string) []*models.Fa
 		}}}
 
 	pipe := document.Pipe(query)
-	err := pipe.All(&self.reitFavorite)
-	if err != nil {
-		// TODO: Do something about the error
-		fmt.Printf("error : ", err)
-	} else {
-
+	self.err = pipe.All(&self.reitFavorite)
+	if self.err != nil {
+		fmt.Printf("error : ", self.err)
 	}
-	return self.reitFavorite
+	return self.reitFavorite,self.err
 }
 
 func (self Reit_Service) CreateNewUserProfile(facebook models.Facebook,google models.Google ) string {
@@ -187,6 +180,13 @@ func (self Reit_Service) CreateNewUserProfile(facebook models.Facebook,google mo
 				Image:facebook.Picture.Data.URL,
 				Site:"facebook"}
 			message = reitServicer.SaveUserProfile(&userProfile)
+		}else{
+			//case update
+			userProfile.FullName = facebook.Name
+			userProfile.UserName = facebook.Name
+			userProfile.Email = facebook.Email
+			userProfile.Image = facebook.Picture.Data.URL
+			message = reitServicer.UpdateUserProfile(&userProfile)
 		}
 	} else if (google != models.Google{}){
 		userProfile := reitServicer.GetUserProfileByCriteria(google.ID, "google")
@@ -199,6 +199,13 @@ func (self Reit_Service) CreateNewUserProfile(facebook models.Facebook,google mo
 				Email:google.Email,
 				Site:"google"}
 			message = reitServicer.SaveUserProfile(&userProfile)
+		}else{
+			//case update
+			userProfile.UserName = facebook.Name
+			userProfile.FullName = facebook.Name
+			userProfile.Email = facebook.Email
+			userProfile.Image = facebook.Picture.Data.URL
+			message = reitServicer.UpdateUserProfile(&userProfile)
 		}
 	}
 	return message
@@ -214,9 +221,24 @@ func (self Reit_Service) SaveUserProfile(profile *models.UserProfile) string {
 	profile.ID = ai.Next("userProfile")
 	err := document.Insert(&profile)
 	if err != nil {
-		return "fail"
+		return util.FALI
 	} else {
-		return "success"
+		return util.SUCCESS
+	}
+}
+
+func (self Reit_Service) UpdateUserProfile(profile *models.UserProfile) string {
+	session := *app.GetDocumentMongo()
+	defer session.Close()
+	// Optional. Switch the session to a monotonic behavior.
+	ai.Connect(session.DB(viper.GetString("mongodb.collection")).C(countersCollection))
+	session.SetMode(mgo.Monotonic, true)
+	document := session.DB(viper.GetString("mongodb.collection")).C(userProfileCollection)
+	err := document.UpdateId(profile.ID,&profile)
+	if err != nil {
+		return util.FALI
+	} else {
+		return util.SUCCESS
 	}
 }
 
@@ -226,12 +248,9 @@ func (self Reit_Service) GetUserProfileByCriteria(userId string, site string ) m
 	// Optional. Switch the session to a monotonic behavior.
 	session.SetMode(mgo.Monotonic, true)
 	document := session.DB(viper.GetString("mongodb.collection")).C(userProfileCollection)
-	err := document.Find(bson.M{"userID": userId,"site": site}).One(&self.userProfile)
-	if err != nil {
-		// TODO: Do something about the error
-		fmt.Printf("error : ", err)
-	} else {
-
+	self.err = document.Find(bson.M{"userID": userId,"site": site}).One(&self.userProfile)
+	if self.err != nil {
+		fmt.Printf("error : ", self.err)
 	}
 	return self.userProfile
 }
@@ -250,37 +269,35 @@ func (self Reit_Service) SearchElastic(query string) []models.ReitItem {
 		From(0).Size(10).   // take documents 0-9
 		Pretty(true).       // pretty print request and response JSON
 		Do(ctx)             // execute
-	if err != nil {
-		// Handle error
-		panic(err)
-	}
+	if err == nil {
+		// TotalHits is another convenience function that works even when something goes wrong.
+		fmt.Printf("Found a total of %d reits\n", searchResult.TotalHits())
 
-	// TotalHits is another convenience function that works even when something goes wrong.
-	fmt.Printf("Found a total of %d reits\n", searchResult.TotalHits())
+		// Here's how you iterate through results with full control over each step.
+		if searchResult.Hits.TotalHits > 0 {
+			// Iterate through results
+			for _, hit := range searchResult.Hits.Hits {
+				// hit.Index contains the name of the index
 
-	// Here's how you iterate through results with full control over each step.
-	if searchResult.Hits.TotalHits > 0 {
-		// Iterate through results
-		for _, hit := range searchResult.Hits.Hits {
-			// hit.Index contains the name of the index
+				// Deserialize hit.Source into a Tweet (could also be just a map[string]interface{}).
+				var t models.ReitItem
+				err := json.Unmarshal(*hit.Source, &t)
+				if err != nil {
+					// Deserialization failed
+				}
+				self.reitItems = append(self.reitItems,t)
+				// Work with tweet
+				fmt.Printf("reit by %s: %s\n", t.Symbol, t.NickName)
 
-			// Deserialize hit.Source into a Tweet (could also be just a map[string]interface{}).
-			var t models.ReitItem
-			err := json.Unmarshal(*hit.Source, &t)
-			if err != nil {
-				// Deserialization failed
 			}
-			self.reitItems = append(self.reitItems,t)
-			// Work with tweet
-			fmt.Printf("reit by %s: %s\n", t.Symbol, t.NickName)
-
+			return self.reitItems
+		} else {
+			// No hits
+			fmt.Print("Found no reit\n")
 		}
-		return self.reitItems
-	} else {
-		// No hits
-		fmt.Print("Found no reit\n")
+	}else {
+		fmt.Printf("error : ", self.err)
 	}
-
 	return  nil
 }
 
@@ -313,10 +330,7 @@ func (self Reit_Service) SearchMap(lat float64 ,lon float64) models.PlaceInfo {
 	pipe := document.Pipe(query)
 	err := pipe.One(&self.locationInfo)
 	if err != nil {
-		// TODO: Do something about the error
 		fmt.Printf("error : ", err)
-	} else {
-
 	}
 	return self.locationInfo
 }
@@ -335,9 +349,8 @@ func AddDataElastic(reit models.Reit) error {
 		Do(ctx)
 	if err != nil {
 		// Handle error
-		panic(err)
+		fmt.Printf("error : ", err)
 	}
-
 	return err
 }
 
@@ -345,21 +358,22 @@ func CheckIndex(){
 	ctx := context.Background()
 	client := app.GetElasticSearch()
 	exists, err := client.IndexExists(viper.GetString("elasticsearch.indexName")).Do(ctx)
-	if err != nil {
-		// Handle error
-		panic(err)
-	}
-	if !exists {
-		// Create a new index.
-		createIndex, err := client.CreateIndex(viper.GetString("elasticsearch.indexName")).BodyString(models.Mapping).Do(ctx)
-		if err != nil {
-			// Handle error
-			panic(err)
+	if err == nil {
+		if !exists {
+			// Create a new index.
+			createIndex, err := client.CreateIndex(viper.GetString("elasticsearch.indexName")).BodyString(models.Mapping).Do(ctx)
+			if err != nil {
+				// Handle error
+				panic(err)
+			}
+			if !createIndex.Acknowledged {
+				// Not acknowledged
+			}
 		}
-		if !createIndex.Acknowledged {
-			// Not acknowledged
-		}
+	}else{
+		fmt.Printf("error : ", err)
 	}
+
 }
 
 func (self Reit_Service) GetReits() ([]models.Reit, error) {
@@ -370,15 +384,12 @@ func (self Reit_Service) GetReits() ([]models.Reit, error) {
 	document := session.DB(viper.GetString("mongodb.collection")).C(reitCollection)
 	self.err = document.Find(bson.M{}).All(&self.reit)
 	if self.err != nil {
-		// TODO: Do something about the error
 		fmt.Printf("error : ", self.err)
-	} else {
-
 	}
 	return self.reit, self.err
 }
 
-func (self Reit_Service) InsertReit(reit models.Reit) (error){
+func (self Reit_Service) InsertReit(reit models.Reit) error{
 	session := *app.GetDocumentMongo()
 	defer session.Close()
 	// Optional. Switch the session to a monotonic behavior.
@@ -387,10 +398,10 @@ func (self Reit_Service) InsertReit(reit models.Reit) (error){
 	document := session.DB(viper.GetString("mongodb.collection")).C(reitCollection)
 	reit.ID = ai.Next("reit")
 	self.err = document.Insert(reit)
-	if self.err != nil {
-		// TODO: Do something about the error
+	if self.err == nil {
+		self.err = AddDataElastic(reit)
+	}else{
 		fmt.Printf("error : ", self.err)
 	}
-	self.err = AddDataElastic(reit)
 	return self.err
 }
