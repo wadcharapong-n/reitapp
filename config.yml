@@ -15,7 +15,7 @@ facebook:
   redirectURL: "http://reit-api.odds.team:1323/Auth/FacebookCallback"
   clientID: "385086385375815"
   clientSecret: "baa3dce5c60b202469c4387f0b588766"
-  accesstokenURL: "https://graph.facebook.com/me?fields=email,id,name,first_name,last_name,middle_name,picture&access_token="
+  accesstokenURL: "https://graph.facebook.com/me?fields=email,id,name,first_name,last_name,middle_name,picture.width(720).height(720)&access_token="
   #  scope: []string{"id","name","first_name","last_name","middle_name","picture"}
 
 google:
