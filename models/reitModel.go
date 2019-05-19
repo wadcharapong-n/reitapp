@@ -67,6 +67,7 @@ type GeoJson struct {
 
 type Place struct{
 	ID     uint64 `json:"-" bson:"_id"`
+	PlaceID string `json:"placeId" bson:"placeId"`
 	Name string `json:"name" bson:"name"`
 	Address string `json:"address" bson:"address"`
 	Symbol string `json:"symbol" bson:"symbol"`

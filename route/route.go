@@ -24,6 +24,16 @@ func Init() *echo.Echo {
 
 	reitController := api.Reit_Handler {}
 	authController := api.Auth_Handler {}
+	adminController := api.Admin_Handler{}
+
+	p := e.Group("/Admin")
+	p.POST("/Login", adminController.HandleAdminLogin)
+	p.GET("/Users", adminController.HandleGetUserAll)
+	p.DELETE("/DeleteUser", adminController.HandleDeleteUser)
+	p.GET("/Places", adminController.HandleGetPlaceAll)
+	p.GET("/Reits", adminController.HandleGetReitAll)
+	p.POST("/AddPlace", adminController.HandleaAddPlace)
+	p.DELETE("/DeletePlace", adminController.HandleDeletePlace)
 
 	//Authenticate
 	//e.GET("/", handleMain)

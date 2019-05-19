@@ -17,7 +17,7 @@ require (
 	github.com/olivere/elastic v6.2.17+incompatible
 	github.com/pkg/errors v0.8.1 // indirect
 	github.com/spf13/viper v1.3.1
-	github.com/stretchr/testify v1.3.0
+	github.com/stretchr/testify v1.3.0 // indirect
 	github.com/valyala/fasttemplate v1.0.1 // indirect
 	golang.org/x/net v0.0.0-20190420063019-afa5a82059c6
 	golang.org/x/oauth2 v0.0.0-20190402181905-9f3314589c9a
