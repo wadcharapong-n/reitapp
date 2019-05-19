@@ -482,3 +482,17 @@ func (self Reit_Service) DeletePlace(placeId string) error {
 	return self.err
 
 }
+
+func (self Reit_Service) GetPlaceID(Id string) (models.Place, error) {
+	session := *app.GetDocumentMongo()
+	defer session.Close()
+	// Optional. Switch the session to a monotonic behavior.
+	session.SetMode(mgo.Monotonic, true)
+	document := session.DB(viper.GetString("mongodb.collection")).C(placeCollection)
+	self.err = document.Find(bson.M{"_id": bson.ObjectIdHex(Id)}).One(&self.Place)
+	if self.err != nil {
+		fmt.Printf("error : ", self.err)
+	}
+	return self.Place, self.err
+
+}

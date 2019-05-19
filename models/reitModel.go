@@ -2,6 +2,7 @@ package models
 
 import (
 	"github.com/dgrijalva/jwt-go"
+	"gopkg.in/mgo.v2/bson"
 )
 
 type ReitItem struct {
@@ -66,8 +67,7 @@ type GeoJson struct {
 }
 
 type Place struct{
-	ID     uint64 `json:"-" bson:"_id"`
-	PlaceID string `json:"placeId" bson:"placeId"`
+	ID   bson.ObjectId  `json:"_id" bson:"_id"`
 	Name string `json:"name" bson:"name"`
 	Address string `json:"address" bson:"address"`
 	Symbol string `json:"symbol" bson:"symbol"`

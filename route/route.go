@@ -34,6 +34,7 @@ func Init() *echo.Echo {
 	p.GET("/Reits", adminController.HandleGetReitAll)
 	p.POST("/AddPlace", adminController.HandleaAddPlace)
 	p.DELETE("/DeletePlace", adminController.HandleDeletePlace)
+	p.GET("/PlaceID/:id", adminController.HandleGetPlaceID)
 
 	//Authenticate
 	//e.GET("/", handleMain)

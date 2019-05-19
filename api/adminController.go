@@ -18,13 +18,14 @@ type AdminController interface {
 	HandleaAddPlace(c echo.Context) error
 	HandleDeletePlace(c echo.Context) error
 	HandleGetReitAll(c echo.Context) error
-	
+	HandleGetPlaceID(c echo.Context) error
 }
 
 type Admin_Handler struct {
 	c            echo.Context
 	userProfiles []models.UserProfile
 	userProfile  models.UserProfile
+	Place        models.Place
 	Places       []models.Place
 	ReitItems    []models.ReitItem
 	reitServicer services.Reit_Service
@@ -114,4 +115,14 @@ func (self Admin_Handler) HandleGetReitAll(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusNotFound, "data not found")
 	}
 	return c.JSON(http.StatusOK, self.ReitItems)
+}
+
+func (self Admin_Handler) HandleGetPlaceID(c echo.Context) error {
+	id := c.Param("id")
+	self.Place, self.err = self.reitServicer.GetPlaceID(id)
+
+	if self.err != nil {
+		return echo.NewHTTPError(http.StatusNotFound, "data not found")
+	}
+	return c.JSON(http.StatusOK, self.Place)
 }
