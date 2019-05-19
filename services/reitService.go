@@ -469,13 +469,13 @@ func (self Reit_Service) AddPlace(placeId string, name string, address string,
 
 }
 
-func (self Reit_Service) DeletePlace(placeId string) error {
+func (self Reit_Service) DeletePlace(Id string) error {
 	session := *app.GetDocumentMongo()
 	defer session.Close()
 	// Optional. Switch the session to a monotonic behavior.
 	session.SetMode(mgo.Monotonic, true)
 	document := session.DB(viper.GetString("mongodb.collection")).C(placeCollection)
-	self.err = document.Remove(bson.M{"placeId": placeId})
+	self.err = document.Remove(bson.M{"_id": bson.ObjectIdHex(Id)})
 	if self.err != nil {
 		fmt.Printf("error : ", self.err)
 	}

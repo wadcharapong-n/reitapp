@@ -99,8 +99,8 @@ func (self Admin_Handler) HandleaAddPlace(c echo.Context) error {
 }
 
 func (self Admin_Handler) HandleDeletePlace(c echo.Context) error {
-	placeId := c.FormValue("placeId")
-	self.err = self.reitServicer.DeletePlace(placeId)
+	id := c.FormValue("id")
+	self.err = self.reitServicer.DeletePlace(id)
 
 	if self.err != nil {
 		return c.String(http.StatusBadRequest, "fail")
