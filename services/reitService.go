@@ -2,8 +2,10 @@ package services
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
-	"github.com/night-codes/mgo-ai"
+
+	ai "github.com/night-codes/mgo-ai"
 	"github.com/olivere/elastic"
 	"github.com/spf13/viper"
 	"github.com/wadcharapong/reitapp/app"
@@ -19,24 +21,24 @@ type ReitServicer interface {
 	GetReitAll() ([]models.ReitItem, error)
 	SaveReitFavorite(userId string, symbol string) error
 	DeleteReitFavorite(userId string, ticker string) error
-	GetReitFavoriteByUserIDJoin(userId string) ([]*models.FavoriteInfo,error)
-	GetUserProfileByCriteria(userId string, site string ) models.UserProfile
+	GetReitFavoriteByUserIDJoin(userId string) ([]*models.FavoriteInfo, error)
+	GetUserProfileByCriteria(userId string, site string) models.UserProfile
 	SaveUserProfile(profile *models.UserProfile) string
-	CreateNewUserProfile(facebook models.Facebook,google models.Google ) string
+	CreateNewUserProfile(facebook models.Facebook, google models.Google) string
 	SearchElastic(query string) []models.ReitItem
-	SearchMap(lat float64 ,lon float64) models.PlaceInfo
+	SearchMap(lat float64, lon float64) models.PlaceInfo
 	InsertReit(reit models.Reit) error
 	UpdateUserProfile(profile *models.UserProfile) string
 }
 
 type Reit_Service struct {
-	reitItems []models.ReitItem
-	reitItem models.ReitItem
+	reitItems    []models.ReitItem
+	reitItem     models.ReitItem
 	reitFavorite []*models.FavoriteInfo
-	userProfile models.UserProfile
+	userProfile  models.UserProfile
 	locationInfo models.PlaceInfo
-	err error
-	reit []models.Reit
+	err          error
+	reit         []models.Reit
 }
 
 const reitCollection = "REIT"
@@ -45,7 +47,6 @@ const placeCollection = "Place"
 const favoriteCollection = "Favorite"
 const countersCollection = "counters"
 const userProfileCollection = "UserProfile"
-
 
 func (self Reit_Service) GetReitAll() ([]models.ReitItem, error) {
 	session := *app.GetDocumentMongo()
@@ -66,7 +67,7 @@ func (self Reit_Service) GetReitAll() ([]models.ReitItem, error) {
 				"localField":   "symbol",
 				"foreignField": "symbol",
 				"as":           "place",
-		}}}
+			}}}
 
 	pipe := document.Pipe(query)
 	self.err = pipe.All(&self.reitItems)
@@ -75,7 +76,6 @@ func (self Reit_Service) GetReitAll() ([]models.ReitItem, error) {
 	}
 	return self.reitItems, self.err
 }
-
 
 func (self Reit_Service) GetReitBySymbol(symbol string) (models.ReitItem, error) {
 	session := *app.GetDocumentMongo()
@@ -109,8 +109,6 @@ func (self Reit_Service) GetReitBySymbol(symbol string) (models.ReitItem, error)
 	return self.reitItem, self.err
 }
 
-
-
 func (self Reit_Service) SaveReitFavorite(userId string, symbol string) error {
 	session := *app.GetDocumentMongo()
 	defer session.Close()
@@ -118,7 +116,7 @@ func (self Reit_Service) SaveReitFavorite(userId string, symbol string) error {
 	session.SetMode(mgo.Monotonic, true)
 	ai.Connect(session.DB(viper.GetString("mongodb.collection")).C(countersCollection))
 	document := session.DB(viper.GetString("mongodb.collection")).C(favoriteCollection)
-	favorite := models.Favorite{ID:ai.Next("Favorite"),UserId: userId, Symbol: symbol}
+	favorite := models.Favorite{ID: ai.Next("Favorite"), UserId: userId, Symbol: symbol}
 	self.err = document.Insert(&favorite)
 	if self.err != nil {
 		fmt.Printf("error : ", self.err)
@@ -126,20 +124,20 @@ func (self Reit_Service) SaveReitFavorite(userId string, symbol string) error {
 	return self.err
 }
 
-func (self Reit_Service) DeleteReitFavorite(userId string, ticker string) error{
+func (self Reit_Service) DeleteReitFavorite(userId string, ticker string) error {
 	session := *app.GetDocumentMongo()
 	defer session.Close()
 	// Optional. Switch the session to a monotonic behavior.
 	session.SetMode(mgo.Monotonic, true)
 	document := session.DB(viper.GetString("mongodb.collection")).C(favoriteCollection)
-	self.err = document.Remove(bson.M{"symbol":ticker,"userId":userId})
+	self.err = document.Remove(bson.M{"symbol": ticker, "userId": userId})
 	if self.err != nil {
 		fmt.Printf("error : ", self.err)
 	}
 	return self.err
 }
 
-func (self Reit_Service) GetReitFavoriteByUserIDJoin(userId string) ([]*models.FavoriteInfo,error) {
+func (self Reit_Service) GetReitFavoriteByUserIDJoin(userId string) ([]*models.FavoriteInfo, error) {
 	session := *app.GetDocumentMongo()
 	defer session.Close()
 	// Optional. Switch the session to a monotonic behavior.
@@ -162,25 +160,25 @@ func (self Reit_Service) GetReitFavoriteByUserIDJoin(userId string) ([]*models.F
 	if self.err != nil {
 		fmt.Printf("error : ", self.err)
 	}
-	return self.reitFavorite,self.err
+	return self.reitFavorite, self.err
 }
 
-func (self Reit_Service) CreateNewUserProfile(facebook models.Facebook,google models.Google ) string {
+func (self Reit_Service) CreateNewUserProfile(facebook models.Facebook, google models.Google) string {
 	var reitServicer ReitServicer
 	reitServicer = Reit_Service{}
 	var message string
-	if (facebook != models.Facebook{}){
+	if (facebook != models.Facebook{}) {
 		userProfile := reitServicer.GetUserProfileByCriteria(facebook.ID, "facebook")
-		if(userProfile == models.UserProfile{}){
-			userProfile =  models.UserProfile{
-				UserID: facebook.ID,
+		if (userProfile == models.UserProfile{}) {
+			userProfile = models.UserProfile{
+				UserID:   facebook.ID,
 				UserName: facebook.Name,
-				FullName:facebook.Name,
-				Email:facebook.Email,
-				Image:facebook.Picture.Data.URL,
-				Site:"facebook"}
+				FullName: facebook.Name,
+				Email:    facebook.Email,
+				Image:    facebook.Picture.Data.URL,
+				Site:     "facebook"}
 			message = reitServicer.SaveUserProfile(&userProfile)
-		}else{
+		} else {
 			//case update
 			userProfile.FullName = facebook.Name
 			userProfile.UserName = facebook.Name
@@ -188,18 +186,18 @@ func (self Reit_Service) CreateNewUserProfile(facebook models.Facebook,google mo
 			userProfile.Image = facebook.Picture.Data.URL
 			message = reitServicer.UpdateUserProfile(&userProfile)
 		}
-	} else if (google != models.Google{}){
+	} else if (google != models.Google{}) {
 		userProfile := reitServicer.GetUserProfileByCriteria(google.ID, "google")
-		if(userProfile == models.UserProfile{}){
-			userProfile =  models.UserProfile{
-				UserID: google.ID,
+		if (userProfile == models.UserProfile{}) {
+			userProfile = models.UserProfile{
+				UserID:   google.ID,
 				UserName: google.Name,
-				FullName:google.Name,
-				Image:google.Picture,
-				Email:google.Email,
-				Site:"google"}
+				FullName: google.Name,
+				Image:    google.Picture,
+				Email:    google.Email,
+				Site:     "google"}
 			message = reitServicer.SaveUserProfile(&userProfile)
-		}else{
+		} else {
 			//case update
 			userProfile.UserName = facebook.Name
 			userProfile.FullName = facebook.Name
@@ -234,7 +232,7 @@ func (self Reit_Service) UpdateUserProfile(profile *models.UserProfile) string {
 	ai.Connect(session.DB(viper.GetString("mongodb.collection")).C(countersCollection))
 	session.SetMode(mgo.Monotonic, true)
 	document := session.DB(viper.GetString("mongodb.collection")).C(userProfileCollection)
-	err := document.UpdateId(profile.ID,&profile)
+	err := document.UpdateId(profile.ID, &profile)
 	if err != nil {
 		return util.FALI
 	} else {
@@ -242,13 +240,13 @@ func (self Reit_Service) UpdateUserProfile(profile *models.UserProfile) string {
 	}
 }
 
-func (self Reit_Service) GetUserProfileByCriteria(userId string, site string ) models.UserProfile {
+func (self Reit_Service) GetUserProfileByCriteria(userId string, site string) models.UserProfile {
 	session := *app.GetDocumentMongo()
 	defer session.Close()
 	// Optional. Switch the session to a monotonic behavior.
 	session.SetMode(mgo.Monotonic, true)
 	document := session.DB(viper.GetString("mongodb.collection")).C(userProfileCollection)
-	self.err = document.Find(bson.M{"userID": userId,"site": site}).One(&self.userProfile)
+	self.err = document.Find(bson.M{"userID": userId, "site": site}).One(&self.userProfile)
 	if self.err != nil {
 		fmt.Printf("error : ", self.err)
 	}
@@ -260,15 +258,15 @@ func (self Reit_Service) SearchElastic(query string) []models.ReitItem {
 	client := app.GetElasticSearch()
 
 	// Search with a term query
-	termQuery := elastic.NewMultiMatchQuery(query,"nickName","symbol","reitManager").Type("phrase_prefix")
+	termQuery := elastic.NewMultiMatchQuery(query, "nickName", "symbol", "reitManager").Type("phrase_prefix")
 	//termQuery := elastic.NewTermQuery("nickName",query)
 	searchResult, err := client.Search().
-		Index(viper.GetString("elasticsearch.indexName")).   // search in index "reitapp"
-		Query(termQuery).   // specify the query
+		Index(viper.GetString("elasticsearch.indexName")). // search in index "reitapp"
+		Query(termQuery).                                  // specify the query
 		//Sort("user", true). // sort by "user" field, ascending
-		From(0).Size(10).   // take documents 0-9
-		Pretty(true).       // pretty print request and response JSON
-		Do(ctx)             // execute
+		From(0).Size(10). // take documents 0-9
+		Pretty(true).     // pretty print request and response JSON
+		Do(ctx)           // execute
 	if err == nil {
 		// TotalHits is another convenience function that works even when something goes wrong.
 		fmt.Printf("Found a total of %d reits\n", searchResult.TotalHits())
@@ -285,7 +283,7 @@ func (self Reit_Service) SearchElastic(query string) []models.ReitItem {
 				if err != nil {
 					// Deserialization failed
 				}
-				self.reitItems = append(self.reitItems,t)
+				self.reitItems = append(self.reitItems, t)
 				// Work with tweet
 				fmt.Printf("reit by %s: %s\n", t.Symbol, t.NickName)
 
@@ -295,13 +293,13 @@ func (self Reit_Service) SearchElastic(query string) []models.ReitItem {
 			// No hits
 			fmt.Print("Found no reit\n")
 		}
-	}else {
+	} else {
 		fmt.Printf("error : ", self.err)
 	}
-	return  nil
+	return nil
 }
 
-func (self Reit_Service) SearchMap(lat float64 ,lon float64) models.PlaceInfo {
+func (self Reit_Service) SearchMap(lat float64, lon float64) models.PlaceInfo {
 	fmt.Println("start : SearchMap")
 	session := *app.GetDocumentMongo()
 	defer session.Close()
@@ -314,11 +312,11 @@ func (self Reit_Service) SearchMap(lat float64 ,lon float64) models.PlaceInfo {
 		"$geoNear": bson.M{
 			"near": bson.M{
 				"type":        "Point",
-				"coordinates": []float64{lon,lat},
+				"coordinates": []float64{lon, lat},
 			},
 			"distanceField": "dist.calculated",
-			"maxDistance": scope, // miles to meter
-			"spherical": "true",
+			"maxDistance":   scope, // miles to meter
+			"spherical":     "true",
 		}},
 		{"$lookup": bson.M{ // lookup the documents table here
 			"from":         reitCollection,
@@ -354,7 +352,7 @@ func AddDataElastic(reit models.Reit) error {
 	return err
 }
 
-func CheckIndex(){
+func CheckIndex() {
 	ctx := context.Background()
 	client := app.GetElasticSearch()
 	exists, err := client.IndexExists(viper.GetString("elasticsearch.indexName")).Do(ctx)
@@ -370,7 +368,7 @@ func CheckIndex(){
 				// Not acknowledged
 			}
 		}
-	}else{
+	} else {
 		fmt.Printf("error : ", err)
 	}
 
@@ -389,18 +387,27 @@ func (self Reit_Service) GetReits() ([]models.Reit, error) {
 	return self.reit, self.err
 }
 
-func (self Reit_Service) InsertReit(reit models.Reit) error{
+func (self Reit_Service) InsertReit(reit models.Reit) error {
 	session := *app.GetDocumentMongo()
 	defer session.Close()
 	// Optional. Switch the session to a monotonic behavior.
 	ai.Connect(session.DB(viper.GetString("mongodb.collection")).C(countersCollection))
 	session.SetMode(mgo.Monotonic, true)
 	document := session.DB(viper.GetString("mongodb.collection")).C(reitCollection)
+
+	symbolDupCount, symbolDupErr := document.Find(bson.M{"symbol": reit.Symbol}).Count()
+	if symbolDupErr != nil {
+		return symbolDupErr
+	}
+	if symbolDupCount > 0 {
+		return errors.New("duplicated symbols")
+	}
+
 	reit.ID = ai.Next("reit")
 	self.err = document.Insert(reit)
 	if self.err == nil {
 		self.err = AddDataElastic(reit)
-	}else{
+	} else {
 		fmt.Printf("error : ", self.err)
 	}
 	return self.err

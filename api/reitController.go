@@ -1,13 +1,14 @@
 package api
 
 import (
-	"github.com/wadcharapong/reitapp/models"
-	"github.com/wadcharapong/reitapp/services"
 	"fmt"
-	"github.com/labstack/echo"
-	"github.com/wadcharapong/reitapp/util"
 	"net/http"
 	"strconv"
+
+	"github.com/labstack/echo"
+	"github.com/wadcharapong/reitapp/models"
+	"github.com/wadcharapong/reitapp/services"
+	"github.com/wadcharapong/reitapp/util"
 )
 
 type ReitController interface {
@@ -17,25 +18,25 @@ type ReitController interface {
 	SaveFavoriteReit(c echo.Context) error
 	DeleteFavoriteReit(c echo.Context) error
 	GetUserProfile(c echo.Context) error
-	GetUserFromToken(c echo.Context) (string,string)
+	GetUserFromToken(c echo.Context) (string, string)
 	Search(c echo.Context) error
-  	SynData(c echo.Context) error
+	SynData(c echo.Context) error
 	AddReit(c echo.Context) error
 }
 
 type Reit_Handler struct {
 	reitServicer services.Reit_Service
-	reitItems []models.ReitItem
-	reitItem models.ReitItem
+	reitItems    []models.ReitItem
+	reitItem     models.ReitItem
 	reitFavorite []*models.FavoriteInfo
-	err error
-	authHandler Auth_Handler
+	err          error
+	authHandler  Auth_Handler
 }
 
 // Handler
 func (self Reit_Handler) GetReitAll(c echo.Context) error {
 	fmt.Println("start : GetReitAll")
-	self.reitItems ,self.err = self.reitServicer.GetReitAll()
+	self.reitItems, self.err = self.reitServicer.GetReitAll()
 	if self.err != nil {
 		return echo.NewHTTPError(http.StatusNotFound, "data not found")
 	}
@@ -56,9 +57,9 @@ func (self Reit_Handler) GetFavoriteReitAll(c echo.Context) error {
 	fmt.Println("start : GetFavoriteReitAll")
 	//userID := c.Param("id")
 
-	userID,_ := self.authHandler.GetUserFromToken(c)
+	userID, _ := self.authHandler.GetUserFromToken(c)
 	self.reitServicer = services.Reit_Service{}
-	self.reitFavorite,self.err = self.reitServicer.GetReitFavoriteByUserIDJoin(userID)
+	self.reitFavorite, self.err = self.reitServicer.GetReitFavoriteByUserIDJoin(userID)
 	if self.err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, self.err)
 	}
@@ -69,9 +70,9 @@ func (self Reit_Handler) SaveFavoriteReit(c echo.Context) error {
 	// Get name and email
 	fmt.Println("start : SaveFavoriteReit")
 	//userID := c.FormValue("userId")
-	userID,_ := self.authHandler.GetUserFromToken(c)
+	userID, _ := self.authHandler.GetUserFromToken(c)
 	ticker := c.FormValue("Ticker")
-	self.err = self.reitServicer.SaveReitFavorite( userID, ticker)
+	self.err = self.reitServicer.SaveReitFavorite(userID, ticker)
 	if self.err != nil {
 		return c.String(http.StatusBadRequest, util.FALI)
 	}
@@ -83,7 +84,7 @@ func (self Reit_Handler) DeleteFavoriteReit(c echo.Context) error {
 	fmt.Println("start : DeleteFavoriteReit")
 	//userID := c.FormValue("userId")
 
-	userID,_ := self.authHandler.GetUserFromToken(c)
+	userID, _ := self.authHandler.GetUserFromToken(c)
 	ticker := c.FormValue("Ticker")
 	self.err = self.reitServicer.DeleteReitFavorite(userID, ticker)
 	if self.err != nil {
@@ -94,11 +95,10 @@ func (self Reit_Handler) DeleteFavoriteReit(c echo.Context) error {
 
 func (self Reit_Handler) GetUserProfile(c echo.Context) error {
 	fmt.Println("start : GetUserProfile")
-	userID,site := self.authHandler.GetUserFromToken(c)
+	userID, site := self.authHandler.GetUserFromToken(c)
 	profile := self.reitServicer.GetUserProfileByCriteria(userID, site)
 	return c.JSON(http.StatusOK, profile)
 }
-
 
 func (self Reit_Handler) Search(c echo.Context) error {
 	q := c.QueryParam("query")
@@ -111,18 +111,18 @@ func (self Reit_Handler) SearchMap(c echo.Context) error {
 	latQ := c.QueryParam("lat")
 	lonQ := c.QueryParam("lon")
 	if len(latQ) > 0 && len(lonQ) > 0 {
-		lat,_ := strconv.ParseFloat(latQ,64)
-		lon,_ := strconv.ParseFloat(lonQ,64)
-		results := self.reitServicer.SearchMap(lat,lon)
+		lat, _ := strconv.ParseFloat(latQ, 64)
+		lon, _ := strconv.ParseFloat(lonQ, 64)
+		results := self.reitServicer.SearchMap(lat, lon)
 		//results := services.SearchMapV2(lat,lon)
 		return c.JSON(http.StatusOK, results)
 	}
-	return c.JSON(http.StatusBadRequest,"" )
+	return c.JSON(http.StatusBadRequest, "")
 
 }
-func (self Reit_Handler)  SynData(c echo.Context) error {
+func (self Reit_Handler) SynData(c echo.Context) error {
 	fmt.Println("start : SynData")
-	reitItems ,err := self.reitServicer.GetReits()
+	reitItems, err := self.reitServicer.GetReits()
 	if err != nil {
 		return c.String(http.StatusBadRequest, util.FALI)
 	}
@@ -132,14 +132,15 @@ func (self Reit_Handler)  SynData(c echo.Context) error {
 	return c.String(http.StatusOK, util.SUCCESS)
 }
 
-func (self Reit_Handler)  AddReit(c echo.Context) error {
+func (self Reit_Handler) AddReit(c echo.Context) error {
 	fmt.Println("start : AddReit")
 	reitParam := new(models.ReitItem)
 	err := c.Bind(reitParam)
 	if err != nil {
 		return c.String(http.StatusBadRequest, "")
 	}
-	reit := models.Reit{reitParam.ID,
+	reit := models.Reit{
+		reitParam.ID,
 		reitParam.TrustNameTh,
 		reitParam.TrustNameEn,
 		reitParam.Symbol,
@@ -163,9 +164,10 @@ func (self Reit_Handler)  AddReit(c echo.Context) error {
 		reitParam.PropertyManager,
 		reitParam.InvestmentAmount,
 		reitParam.DvdYield}
+
 	err = self.reitServicer.InsertReit(reit)
 	if err != nil {
-		return c.String(http.StatusOK, util.FALI)
+		return c.String(http.StatusOK, err.Error())
 	}
 	return c.String(http.StatusOK, util.SUCCESS)
 }
