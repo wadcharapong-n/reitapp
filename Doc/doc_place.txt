@@ -1,0 +1,161 @@
+{
+    "symbol" : "AIMIRT",
+    "name" : "โครงการแปซิฟิค ห้องเย็น",
+    "address" : "ตำบลนาดี อำเภอเมืองสมุทรสาคร จังหวัดสมุทรสาคร",
+    "location" : {
+        "type" : "Point",
+        "coordinates" : [ 
+            100.289888, 
+            13.585113
+        ]
+    }
+}
+{
+    "symbol" : "AIMIRT",
+    "name" : "โครงการเจดับเบิ้ลยูดี แปซิฟิค",
+    "address" : "ตำบลคลองนครเนื่องเขต อำเภอเมืองฉะเชิงเทรา จังหวัดฉะเชิงเทรา",
+    "location" : {
+        "type" : "Point",
+        "coordinates" : [ 
+            100.981010, 
+            13.771622
+        ]
+    }
+}
+{
+    "symbol" : "AIMIRT",
+    "name" : "โครงการดาต้าเซฟ",
+    "address" : "ตำบลนครเนื่องเขต อำเภอเมืองฉะเชิงเทรา จังหวัดฉะเชิงเทรา",
+    "location" : {
+        "type" : "Point",
+        "coordinates" : [ 
+            100.726096, 
+            13.823727
+
+
+        ]
+    }
+}
+{
+    "symbol" : "AIMIRT",
+    "name" : "โครงการทิพย์ 7",
+    "address" : "ตำบลบางปลา อำเภอบางพลี จังหวัดสมุทรปราการ",
+    "location" : {
+        "type" : "Point",
+        "coordinates" : [ 
+          100.756255,
+          13.581860
+        ]
+    }
+}
+{
+    "symbol" : "GVREIT",
+    "name" : "Park Ventures Ecoplex",
+    "address" : "หัวมุมถนนเพลินจิต-วิทยุ (เชื่อมต่อโดยตรงกับสถานีรถไฟฟ้า BTS เพลินจิต)",
+    "location" : {
+        "type" : "Point",
+        "coordinates" : [ 
+          100.547840,
+          13.743037
+        ]
+    }
+}
+
+{
+    "symbol" : "GVREIT",
+    "name" : "SATHORN SQUARE",
+    "address" : "หัวมุมถนนสาทร-นราธิวาสราชนครินทร์ (เชื่อมต่อโดยตรงกับสถานีรถไฟฟ้า BTS ช่องนนทรี และสถานีรถไฟฟ้า BRT สาทร)",
+    "location" : {
+        "type" : "Point",
+        "coordinates" : [ 
+          100.529348,
+          13.722294
+        ]
+    }
+}
+{
+    "symbol" : "IMPACT",
+    "name" : "IMPACT Arena",
+    "address" : "IMPACT Arena, Exhibition and Convention Center, Muang Thong Thani ถนน ถนนป๊อปปูล่า 3 ตำบล บ้านใหม่ นนทบุรี 11120",
+    "location" : {
+        "type" : "Point",
+        "coordinates" : [ 
+          100.547643,
+          13.912574
+        ]
+    }
+}
+
+{
+    "symbol" : "IMPACT",
+    "name" : "IMPACT Challenger",
+    "address" : "IMPACT Challenger Building ถนน ถนนป๊อปปูล่า 1 ตำบล บ้านใหม่ นนทบุรี 11120",
+    "location" : {
+        "type" : "Point",
+        "coordinates" : [ 
+          100.546503,
+          13.912774
+        ]
+    }
+}
+{
+    "symbol" : "IMPACT",
+    "name" : "IMPACT Exhibition Center",
+    "address" : "IMPACT Exhibition Center Building Popular Road Banmai Sub-district Pakkred District นนทบุรี 11120",
+    "location" : {
+        "type" : "Point",
+        "coordinates" : [ 
+          100.549032,
+          13.913247
+        ]
+    }
+}
+
+{
+    "symbol" : "IMPACT",
+    "name" : "IMPACT Forum",
+    "address" : "IMPACT Forum Building, ถนน ป๊อปปูล่า ตำบล บ้านใหม่ นนทบุรี 11120",
+    "location" : {
+        "type" : "Point",
+        "coordinates" : [ 
+          100.547307,
+          13.915952
+        ]
+    }
+}       
+{
+    "symbol" : "LHSC",
+    "name" : "โครงการศูนย์การค้าเทอร์มินอล 21",
+    "address" : "88 ซอย สุขุมวิท 19 แขวง คลองเตยเหนือ เขต วัฒนา กรุงเทพมหานคร 10110",
+    "location" : {
+        "type" : "Point",
+        "coordinates" : [ 
+          100.560228,
+          13.737567
+        ]
+    }
+}    
+{
+    "symbol" : "LHHOTEL",
+    "name" : "โครงการโรงแรมแกรนด์ เซนเตอร์ พอยต์ เทอร์มินอล 21",
+    "address" : "2 ซอยสุุขุมวิท แขวง คลองเตยเหนือ เขต วัฒนา กรุงเทพมหานคร 10110",
+    "location" : {
+        "type" : "Point",
+        "coordinates" : [ 
+          100.560614,
+          13.737303
+        ]
+    }
+}   
+{
+    "symbol" : "LHHOTEL",
+    "name" : "โครงการโรงแรมแกรนด์ เซนเตอร์ พอยต์ ราชดำริ",
+    "address" : "153/2 ถนน ราชดำริ แขวง ลุมพินี เขต ปทุมวัน กรุงเทพมหานคร 10330",
+    "location" : {
+        "type" : "Point",
+        "coordinates" : [ 
+          100.541073,
+          13.741806
+        ]
+    }
+}     
